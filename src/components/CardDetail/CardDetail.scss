@@ -1,0 +1,289 @@
+.CardDetail {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 24px;
+
+  // Standalone art: sits on its own (transparent background) beside the panel,
+  // sized per item size so Small / Medium / Large differ, with a soft shadow.
+  &-art {
+    --art-h: 240px;
+    flex-shrink: 0;
+    height: var(--art-h);
+    border-radius: var(--radius);
+    padding: 3px;
+    background: var(--art-tier-color, var(--color-border));
+    filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.55));
+
+    .CardImage {
+      width: 100%;
+      height: 100%;
+      background: transparent;
+    }
+
+    // Widths follow the in-game slot footprint (1 / 2 / 3 slots wide) at the
+    // art's true aspect ratio, so the rendered images are genuinely different
+    // sizes rather than letterboxed inside a shared box.
+    &.is-small {
+      width: calc(var(--art-h) / 2);
+    }
+    &.is-medium {
+      width: var(--art-h);
+    }
+    &.is-large {
+      width: calc(var(--art-h) * 1.5);
+    }
+
+    // Skills stay small and circular, on a transparent background.
+    &.is-skill {
+      --art-h: 132px;
+      width: var(--art-h);
+      padding: 0;
+      background: none;
+      filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.5));
+    }
+
+    &[data-tier='Bronze'] {
+      --art-tier-color: var(--tier-bronze);
+    }
+    &[data-tier='Silver'] {
+      --art-tier-color: var(--tier-silver);
+    }
+    &[data-tier='Gold'] {
+      --art-tier-color: var(--tier-gold);
+    }
+    &[data-tier='Diamond'] {
+      --art-tier-color: var(--tier-diamond);
+    }
+    &[data-tier='Legendary'] {
+      --art-tier-color: var(--tier-legendary);
+    }
+  }
+
+  // Details panel: this is the "modal" half — tags, description, effects, etc.
+  &-panel {
+    position: relative;
+    flex: 1 1 380px;
+    min-width: 0;
+    max-width: 460px;
+    max-height: 90vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+  }
+
+  &-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1;
+    display: flex;
+    padding: 6px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.35);
+    color: var(--color-text);
+    cursor: pointer;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.6);
+    }
+  }
+
+  &-heading {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &-name {
+    margin: 0 0 8px;
+    font-size: 1.3rem;
+    padding-right: 28px;
+  }
+
+  &-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  &-heroes {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  &-heroesLabel {
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    cursor: help;
+    text-decoration: underline dotted;
+    text-underline-offset: 2px;
+  }
+
+  &-stats {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 14px;
+    margin-top: 10px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+
+  &-stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  &-badge {
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border);
+    font-size: 0.72rem;
+    color: var(--color-text-dim);
+
+    &.is-hero {
+      color: var(--color-accent);
+      border-color: var(--color-accent);
+    }
+
+    &[data-tier='Bronze'] {
+      color: var(--tier-bronze);
+    }
+    &[data-tier='Silver'] {
+      color: var(--tier-silver);
+    }
+    &[data-tier='Gold'] {
+      color: var(--tier-gold);
+    }
+    &[data-tier='Diamond'] {
+      color: var(--tier-diamond);
+    }
+    &[data-tier='Legendary'] {
+      color: var(--tier-legendary);
+    }
+  }
+
+  &-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  &-sectionTitle {
+    margin: 0;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+  }
+
+  &-lazyNote {
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--color-text-muted);
+    opacity: 0.75;
+  }
+
+  &-tier,
+  &-ench {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px;
+    border-radius: var(--radius);
+    background: var(--color-bg-elevated);
+  }
+
+  &-tierLabel,
+  &-enchType {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-text-dim);
+  }
+
+  &-tierLabel {
+    &[data-tier='Bronze'] {
+      color: var(--tier-bronze);
+    }
+    &[data-tier='Silver'] {
+      color: var(--tier-silver);
+    }
+    &[data-tier='Gold'] {
+      color: var(--tier-gold);
+    }
+    &[data-tier='Diamond'] {
+      color: var(--tier-diamond);
+    }
+    &[data-tier='Legendary'] {
+      color: var(--tier-legendary);
+    }
+  }
+
+  &-enchType {
+    color: var(--color-accent);
+  }
+
+  &-tooltips {
+    margin: 0;
+    padding-left: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 0.86rem;
+    color: var(--color-text);
+  }
+
+  &-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  &-tag {
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border);
+    font-size: 0.72rem;
+    color: var(--color-text-dim);
+  }
+
+  &-muted {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+  }
+}
+
+// Narrow viewports: stack the art above the panel.
+@media (max-width: 620px) {
+  .CardDetail {
+    flex-direction: column;
+    align-items: center;
+
+    &-art {
+      --art-h: 200px;
+    }
+
+    &-panel {
+      width: 100%;
+      max-width: 100%;
+      max-height: 70vh;
+    }
+  }
+}

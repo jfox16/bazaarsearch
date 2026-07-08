@@ -1,0 +1,71 @@
+.TextFilter {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  &-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 10px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-bg-elevated);
+
+    &:focus-within {
+      border-color: var(--color-accent);
+    }
+  }
+
+  &-icon {
+    color: var(--color-text-muted);
+    flex-shrink: 0;
+  }
+
+  &-input {
+    flex: 1;
+    min-width: 0;
+    padding: 9px 0;
+    border: none;
+    background: transparent;
+    color: var(--color-text);
+    font-size: 0.9rem;
+
+    &::placeholder {
+      color: var(--color-text-muted);
+    }
+
+    &:focus {
+      outline: none;
+    }
+  }
+
+  &-clear {
+    display: flex;
+    padding: 2px;
+    border: none;
+    background: transparent;
+    color: var(--color-text-muted);
+
+    &:hover {
+      color: var(--color-text);
+    }
+  }
+
+  &-detected {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  &-chip {
+    padding: 2px 8px;
+    border: 1px solid var(--color-accent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-accent) 15%, transparent);
+    color: var(--color-accent);
+    font-size: 0.72rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+}

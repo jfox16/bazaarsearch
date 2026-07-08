@@ -1,0 +1,16 @@
+.CardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  padding: 16px;
+
+  &-sentinel {
+    height: 1px;
+  }
+
+  &-message {
+    padding: 48px 16px;
+    text-align: center;
+    color: var(--color-text-muted);
+  }
+}

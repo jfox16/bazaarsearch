@@ -1,0 +1,15 @@
+@use 'styles/theme' as *;
+
+.Search {
+  min-height: 100%;
+
+  &-content {
+    padding-top: var(--header-height);
+    padding-left: var(--sidebar-width);
+
+    @include mobile {
+      padding-top: var(--header-height-mobile);
+      padding-left: 0;
+    }
+  }
+}

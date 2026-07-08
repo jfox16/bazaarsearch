@@ -1,0 +1,61 @@
+.MobileFilterDrawer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(0, 0, 0, 0.6);
+  animation: mfd-fade 0.15s ease;
+}
+
+.MobileFilterDrawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(88vw, 360px);
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-elevated);
+  border-left: 1px solid var(--color-border);
+  box-shadow: -12px 0 32px rgba(0, 0, 0, 0.4);
+  animation: mfd-slide 0.2s ease;
+
+  &-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--color-border);
+    font-weight: 700;
+  }
+
+  &-close {
+    display: flex;
+    padding: 4px;
+    border: none;
+    background: transparent;
+    color: var(--color-text);
+  }
+
+  &-body {
+    flex: 1;
+    overflow-y: auto;
+  }
+}
+
+@keyframes mfd-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes mfd-slide {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}

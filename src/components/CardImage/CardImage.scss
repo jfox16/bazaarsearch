@@ -1,0 +1,139 @@
+.CardImage {
+  position: relative;
+  width: 100%;
+  // 3:2 box, matching howbazaar. Small art stretches to a tall 1:2 foreground,
+  // Medium to a square, Large to the full 3:2 width.
+  aspect-ratio: 3 / 2;
+  // Never let flex/grid layout compress the box (avoids squished art).
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: var(--color-bg-elevated);
+
+  &-placeholder {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      100deg,
+      var(--color-bg-elevated) 30%,
+      var(--color-surface) 50%,
+      var(--color-bg-elevated) 70%
+    );
+    background-size: 200% 100%;
+    animation: card-image-shimmer 1.2s ease-in-out infinite;
+    z-index: 2;
+  }
+
+  &-backdrop {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(16px) brightness(0.5);
+    transform: scale(1.1);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+
+    &[data-loaded='true'] {
+      opacity: 1;
+    }
+  }
+
+  &-img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    height: 100%;
+    // Stretch the stored square back to its intended aspect ratio.
+    object-fit: fill;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+
+    &[data-loaded='true'] {
+      opacity: 1;
+    }
+  }
+
+  // Detail view (contain): full art, letterboxed at its true aspect ratio.
+  // Foreground width as a fraction of the 3:2 container width.
+  &.is-small .CardImage-img {
+    width: 33.3333%;
+  }
+  &.is-medium .CardImage-img {
+    width: 66.6667%;
+  }
+  &.is-large .CardImage-img {
+    width: 100%;
+  }
+
+  // Tile view (cover): square frame; the un-squished art is zoomed until it
+  // covers the square, cropping the overflow toward the center.
+  &.is-cover {
+    aspect-ratio: 1 / 1;
+  }
+  // Small art is 1:2 (tall): fill width, overflow top/bottom.
+  &.is-cover.is-small .CardImage-img {
+    width: 100%;
+    height: 200%;
+  }
+  // Medium art is 1:1: exact fit.
+  &.is-cover.is-medium .CardImage-img {
+    width: 100%;
+    height: 100%;
+  }
+  // Large art is 3:2 (wide): fill height, overflow left/right.
+  &.is-cover.is-large .CardImage-img {
+    width: 150%;
+    height: 100%;
+  }
+
+  // Standalone view: the box is sized by its parent (per item size) and the
+  // (un-squished) art fills it edge-to-edge at the box's aspect ratio.
+  &.is-fill {
+    aspect-ratio: auto;
+    width: 100%;
+    height: 100%;
+  }
+  &.is-fill .CardImage-img {
+    top: 0;
+    left: 0;
+    transform: none;
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+  }
+
+  // Skills: a centered circle at ~0.8x the frame height. object-fit cover keeps
+  // the round crop from distorting (skill art is already square).
+  &.is-circle .CardImage-img {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: auto;
+    height: 60%;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  &-fallback {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-muted);
+    font-size: 1.5rem;
+  }
+}
+
+@keyframes card-image-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

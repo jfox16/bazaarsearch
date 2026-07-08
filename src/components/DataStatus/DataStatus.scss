@@ -1,0 +1,44 @@
+.DataStatus {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+
+  &-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--color-text-muted);
+    flex-shrink: 0;
+  }
+
+  &[data-tone='loading'] &-dot {
+    background: var(--color-accent);
+    animation: data-status-pulse 1s ease-in-out infinite;
+  }
+
+  &[data-tone='ready'] &-dot {
+    background: #5bbd6a;
+  }
+
+  &[data-tone='error'] {
+    color: #e07a6b;
+  }
+
+  &[data-tone='error'] &-dot {
+    background: #e07a6b;
+  }
+}
+
+@keyframes data-status-pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
