@@ -1,3 +1,4 @@
+import { SELL_PRICE_OVERRIDES } from 'data/sellPriceOverrides';
 import type { BazaarEntry, Size, Tier } from 'types/bazaar';
 
 const TIER_ORDER: Tier[] = ['Bronze', 'Silver', 'Gold', 'Diamond', 'Legendary'];
@@ -34,6 +35,9 @@ export const getSellPrice = (entry: BazaarEntry, qualityTier: Tier): number | nu
   const slots = SIZE_SLOTS[entry.size];
 
   if (qualityIndex < startIndex) return null;
+
+  const override = SELL_PRICE_OVERRIDES[entry.id]?.[qualityTier];
+  if (override !== undefined) return override;
 
   if (startIndex >= 2) return 2 ** qualityIndex;
 

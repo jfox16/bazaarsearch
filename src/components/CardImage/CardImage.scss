@@ -137,12 +137,17 @@
   }
 
   // Detail view: the frame is already skill-sized — fill it edge-to-edge.
+  &.is-fill.is-circle {
+    border-radius: 50%;
+  }
+
   &.is-fill.is-circle .CardImage-img {
     top: 0;
     left: 0;
     transform: none;
     width: 100%;
     height: 100%;
+    object-fit: cover;
   }
 
   // Inset vignette on circular skill art (matches cover tile vignette).

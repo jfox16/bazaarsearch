@@ -51,8 +51,14 @@ export const CardImage = ({ src, alt, size, circle, cover, fill, eager }: CardIm
     setFailed(false);
   }, [src]);
 
-  const shape = circle ? 'is-circle' : fill ? 'is-fill' : sizeClass(size);
-  const className = ['CardImage', cover && 'is-cover', shape, failed && 'is-failed']
+  const className = [
+    'CardImage',
+    cover && 'is-cover',
+    circle && 'is-circle',
+    fill && 'is-fill',
+    !circle && !fill && sizeClass(size),
+    failed && 'is-failed',
+  ]
     .filter(Boolean)
     .join(' ');
 

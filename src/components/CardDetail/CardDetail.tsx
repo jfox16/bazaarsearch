@@ -248,7 +248,7 @@ export const CardDetail = ({ entry, onClose }: CardDetailProps) => {
             >
               {entry.kind === 'item' ? 'Item' : 'Skill'}
             </button>
-            {entry.size && (
+            {!isSkill && entry.size && (
               <button
                 type="button"
                 className="CardDetail-badge is-clickable"
@@ -310,8 +310,8 @@ export const CardDetail = ({ entry, onClose }: CardDetailProps) => {
         )}
 
         {entry.heroes.length > 0 && (
-          <section className="CardDetail-section">
-            <h3 className="CardDetail-sectionTitle">Heroes</h3>
+          <section className="CardDetail-section CardDetail-section--inline">
+            <h3 className="CardDetail-sectionTitle">Hero</h3>
             <div className="CardDetail-heroes">
               {entry.heroes.map((hero) => (
                 <button
@@ -328,8 +328,8 @@ export const CardDetail = ({ entry, onClose }: CardDetailProps) => {
         )}
 
         {types.length > 0 && (
-          <section className="CardDetail-section">
-            <h3 className="CardDetail-sectionTitle">Type</h3>
+          <section className="CardDetail-section CardDetail-section--inline">
+            <h3 className="CardDetail-sectionTitle">Types</h3>
             <div className="CardDetail-tags">
               {types.map((type) => (
                 <button
@@ -347,7 +347,7 @@ export const CardDetail = ({ entry, onClose }: CardDetailProps) => {
         )}
 
         {mechanicTags.length > 0 && (
-          <section className="CardDetail-section">
+          <section className="CardDetail-section CardDetail-section--inline">
             <h3 className="CardDetail-sectionTitle">Tags</h3>
             <div className="CardDetail-tags">
               {mechanicTags.map((tag) => (
@@ -369,42 +369,43 @@ export const CardDetail = ({ entry, onClose }: CardDetailProps) => {
           <section className="CardDetail-section">
             <h3 className="CardDetail-sectionTitle">Quests</h3>
             {questStatus === 'loading' && <p className="CardDetail-muted">Loading quests...</p>}
-            {quests?.map((quest, questIndex) => (
-              <div key={questIndex} className="CardDetail-quest">
-                {quest.entries.map((questEntry, entryIndex) => (
-                  <div key={entryIndex} className="CardDetail-questEntry">
-                    {quest.entries.length > 1 && (
-                      <span className="CardDetail-questStep">Step {entryIndex + 1}</span>
-                    )}
-                    {quests.length > 1 && quest.entries.length === 1 && (
-                      <span className="CardDetail-questStep">Quest {questIndex + 1}</span>
-                    )}
-                    <div className="CardDetail-questBlock">
-                      <span className="CardDetail-questLabel">Objective</span>
-                      <ul className="CardDetail-tooltips">
-                        {questEntry.tooltips.map((tip, i) => (
-                          <li key={i}>
-                            <TooltipLine text={tip} plain />
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    {questEntry.rewardTooltips.length > 0 && (
-                      <div className="CardDetail-questBlock">
-                        <span className="CardDetail-questLabel is-reward">Reward</span>
-                        <ul className="CardDetail-tooltips">
-                          {questEntry.rewardTooltips.map((tip, i) => (
-                            <li key={i}>
-                              <TooltipLine text={tip} plain />
-                            </li>
-                          ))}
-                        </ul>
+            {quests && quests.length > 0 && (
+              <div className="CardDetail-quest">
+                {quests.map((quest, questIndex) => (
+                  <div key={questIndex} className="CardDetail-questGroup">
+                    {quest.entries.map((questEntry, entryIndex) => (
+                      <div key={entryIndex} className="CardDetail-questEntry">
+                        {quest.entries.length > 1 && (
+                          <span className="CardDetail-questStep">Step {entryIndex + 1}</span>
+                        )}
+                        <div className="CardDetail-questBlock">
+                          <span className="CardDetail-questLabel">Objective</span>
+                          <ul className="CardDetail-tooltips">
+                            {questEntry.tooltips.map((tip, i) => (
+                              <li key={i}>
+                                <TooltipLine text={tip} plain />
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        {questEntry.rewardTooltips.length > 0 && (
+                          <div className="CardDetail-questBlock">
+                            <span className="CardDetail-questLabel is-reward">Reward</span>
+                            <ul className="CardDetail-tooltips">
+                              {questEntry.rewardTooltips.map((tip, i) => (
+                                <li key={i}>
+                                  <TooltipLine text={tip} plain />
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    ))}
                   </div>
                 ))}
               </div>
-            ))}
+            )}
           </section>
         )}
 
