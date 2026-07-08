@@ -49,6 +49,22 @@
       width: 100%;
       height: 100%;
       background: transparent;
+
+      &.is-failed {
+        background: var(--color-brown);
+
+        .CardImage-fallback {
+          background: var(--color-brown);
+          color: #fff;
+          font-size: clamp(2.75rem, 38%, 5rem);
+          font-weight: 700;
+          line-height: 1;
+        }
+      }
+    }
+
+    &.is-skill .CardImage.is-failed .CardImage-fallback {
+      border-radius: 50%;
     }
 
     .CardDetail-artGlint {
@@ -152,6 +168,7 @@
     min-width: 0;
     max-width: 460px;
     max-height: 90vh;
+    overflow-x: hidden;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -193,63 +210,136 @@
     padding-right: 28px;
   }
 
-  &-meta {
+  &-meta,
+  &-heroes,
+  &-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
-  }
-
-  &-heroes {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-
-  &-stats {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 4px 14px;
-    margin-top: 10px;
-    font-size: var(--font-size-lg);
-    font-weight: 700;
-    color: var(--color-text);
-  }
-
-  &-stat {
-    display: inline-flex;
-    align-items: center;
     gap: 4px;
+    min-width: 0;
+  }
+
+  &-tags {
+    width: 100%;
+    overflow-x: hidden;
   }
 
   &-badge {
-    padding: 2px 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1px 7px;
     border-radius: 999px;
     background: var(--color-bg-elevated);
     border: 1px solid var(--color-border);
-    font-size: var(--font-size-xs);
+    font-size: var(--font-size-2xs);
+    font-weight: 500;
+    line-height: 1.25;
     color: var(--color-text-dim);
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    white-space: nowrap;
+    vertical-align: baseline;
 
-    &.is-hero {
+    &:is(button) {
+      appearance: none;
+      min-height: 0;
+      margin: 0;
+      font-family: inherit;
+    }
+
+    &.is-clickable {
+      cursor: pointer;
+      transition:
+        background 0.15s,
+        border-color 0.15s,
+        color 0.15s;
+
+      &:hover {
+        background: var(--color-bg-hover, var(--color-bg-elevated));
+        border-color: color-mix(in srgb, var(--color-accent) 40%, var(--color-border));
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 2px;
+      }
+    }
+
+    &.is-hero,
+    &.is-type {
       color: var(--color-accent);
       border-color: var(--color-accent);
     }
 
     &[data-tier='Bronze'] {
       color: var(--tier-bronze);
+      border-color: color-mix(in srgb, var(--tier-bronze) 35%, var(--color-border));
     }
     &[data-tier='Silver'] {
       color: var(--tier-silver);
+      border-color: color-mix(in srgb, var(--tier-silver) 35%, var(--color-border));
     }
     &[data-tier='Gold'] {
       color: var(--tier-gold);
+      border-color: color-mix(in srgb, var(--tier-gold) 35%, var(--color-border));
     }
     &[data-tier='Diamond'] {
       color: var(--tier-diamond);
+      border-color: color-mix(in srgb, var(--tier-diamond) 35%, var(--color-border));
     }
     &[data-tier='Legendary'] {
       color: var(--tier-legendary);
+      border-color: color-mix(in srgb, var(--tier-legendary) 35%, var(--color-border));
     }
+
+    @each $tag, $token in (
+      'Burn': --stat-burn,
+      'BurnReference': --stat-burn,
+      'Damage': --stat-damage,
+      'DamageReference': --stat-damage,
+      'Heal': --stat-heal,
+      'HealReference': --stat-heal,
+      'Health': --stat-heal,
+      'HealthReference': --stat-heal,
+      'Poison': --stat-poison,
+      'PoisonReference': --stat-poison,
+      'Shield': --stat-shield,
+      'ShieldReference': --stat-shield,
+      'Regen': --stat-regen,
+      'RegenReference': --stat-regen,
+      'Freeze': --stat-freeze,
+      'FreezeReference': --stat-freeze,
+      'Slow': --stat-slow,
+      'SlowReference': --stat-slow,
+      'Haste': --stat-haste,
+      'HasteReference': --stat-haste,
+      'Crit': --stat-crit,
+      'CritReference': --stat-crit,
+      'Gold': --stat-value
+    ) {
+      &[data-tag='#{$tag}'] {
+        color: var(#{$token});
+        border-color: color-mix(in srgb, var(#{$token}) 35%, var(--color-border));
+      }
+    }
+  }
+
+  &-stats {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 8px;
+    margin-top: 6px;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  &-stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
   }
 
   &-section {
@@ -268,13 +358,50 @@
   }
 
   &-tier,
-  &-ench {
+  &-ench,
+  &-quest {
     display: flex;
     flex-direction: column;
     gap: 4px;
     padding: 10px;
     border-radius: var(--radius);
     background: var(--color-bg-elevated);
+  }
+
+  &-questEntry {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    & + & {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--color-border);
+    }
+  }
+
+  &-questStep {
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    color: var(--color-accent);
+  }
+
+  &-questBlock {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &-questLabel {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
+
+    &.is-reward {
+      color: var(--tier-gold);
+    }
   }
 
   &-tierHeader {
@@ -368,52 +495,6 @@
     gap: 3px;
     font-size: var(--font-size-md);
     color: var(--color-text);
-  }
-
-  &-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-
-  &-tag {
-    padding: 2px 8px;
-    border-radius: 6px;
-    background: var(--color-bg-elevated);
-    border: 1px solid var(--color-border);
-    font-size: var(--font-size-xs);
-    color: var(--color-text-dim);
-
-    @each $tag, $token in (
-      'Burn': --stat-burn,
-      'BurnReference': --stat-burn,
-      'Damage': --stat-damage,
-      'DamageReference': --stat-damage,
-      'Heal': --stat-heal,
-      'HealReference': --stat-heal,
-      'Health': --stat-heal,
-      'HealthReference': --stat-heal,
-      'Poison': --stat-poison,
-      'PoisonReference': --stat-poison,
-      'Shield': --stat-shield,
-      'ShieldReference': --stat-shield,
-      'Regen': --stat-regen,
-      'RegenReference': --stat-regen,
-      'Freeze': --stat-freeze,
-      'FreezeReference': --stat-freeze,
-      'Slow': --stat-slow,
-      'SlowReference': --stat-slow,
-      'Haste': --stat-haste,
-      'HasteReference': --stat-haste,
-      'Crit': --stat-crit,
-      'CritReference': --stat-crit,
-      'Gold': --stat-value
-    ) {
-      &[data-tag='#{$tag}'] {
-        color: var(#{$token});
-        border-color: color-mix(in srgb, var(#{$token}) 35%, var(--color-border));
-      }
-    }
   }
 
   &-muted {

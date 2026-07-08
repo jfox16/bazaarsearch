@@ -4,6 +4,7 @@
   left: 0;
   bottom: 0;
   width: var(--sidebar-width);
+  overflow-x: hidden;
   overflow-y: auto;
   background: var(--color-bg-elevated);
   border-right: 1px solid var(--color-border);

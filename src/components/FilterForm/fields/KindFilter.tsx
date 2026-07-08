@@ -1,5 +1,5 @@
 import { ChipToggleGroup } from 'components/FilterForm/ChipToggleGroup';
-import { TYPE_HINT, kindChipHint } from 'data/filterHints';
+import { KIND_HINT, kindChipHint } from 'data/filterHints';
 import { useBazaarStore } from 'store/useBazaarStore';
 
 const OPTIONS = [
@@ -13,8 +13,8 @@ export const KindFilter = () => {
 
   return (
     <ChipToggleGroup
-      label="Type"
-      hint={TYPE_HINT}
+      label="Kind"
+      hint={KIND_HINT}
       options={OPTIONS}
       selected={selected}
       onToggle={(value) => toggleFilter('kinds', value)}

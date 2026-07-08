@@ -88,6 +88,7 @@ async function main() {
   const rawByKind = {};
   const entries = [];
   const enchantmentsById = {}; // item id -> [{ type, tooltips }]
+  const questsById = {}; // item id -> [{ entries: [{ tooltips, rewardTooltips }] }]
 
   for (const { kind, url, cdnDir } of SOURCES) {
     console.log(`Fetching ${kind}s from ${url} ...`);
@@ -99,6 +100,9 @@ async function main() {
       entries.push(toEntry(r, kind, cdnDir));
       if (kind === 'item' && Array.isArray(r.enchantments) && r.enchantments.length) {
         enchantmentsById[r.id] = r.enchantments;
+      }
+      if (kind === 'item' && Array.isArray(r.quests) && r.quests.length) {
+        questsById[r.id] = r.quests;
       }
     }
     await sleep(300); // be polite between endpoints
@@ -114,7 +118,9 @@ async function main() {
       entries.map((e) => e.startingTier),
       ['Bronze', 'Silver', 'Gold', 'Diamond', 'Legendary'],
     ),
-    // Combined visible + hidden + custom tags (matches howbazaar's advanced filter).
+    // Visible category tags (Weapon, Toy, Tool, …).
+    types: uniqSorted(entries.flatMap((e) => e.tags)),
+    // Types plus mechanic tags (Burn, Shield, …).
     tags: uniqSorted(entries.flatMap((e) => [...e.tags, ...e.hiddenTags, ...e.customTags])),
     enchantments: uniqSorted(
       Object.values(enchantmentsById)
@@ -159,17 +165,26 @@ async function main() {
   const enchantmentsMin = JSON.stringify(enchantmentsData);
   await writeFile(resolve(outDir, 'enchantments.json'), enchantmentsMin);
 
+  const questsData = {
+    meta: { generatedAt: dataset.meta.generatedAt, count: Object.keys(questsById).length },
+    byId: questsById,
+  };
+  const questsMin = JSON.stringify(questsData);
+  await writeFile(resolve(outDir, 'quests.json'), questsMin);
+
   const size = Buffer.byteLength(minified);
   const enchantSize = Buffer.byteLength(enchantmentsMin);
+  const questsSize = Buffer.byteLength(questsMin);
   const sizeNote = size <= BUNDLE_WARN_BYTES ? '(OK, will bundle)' : '(WARNING: > 2 MB - consider runtime fetch)';
-  console.log('\nWrote src/data/bazaarData.json + src/data/enchantments.json');
+  console.log('\nWrote src/data/bazaarData.json + src/data/enchantments.json + src/data/quests.json');
   console.log(`  entries: ${entries.length} (items ${items.length}, skills ${skills.length})`);
   console.log(
     `  facets: ${facets.heroes.length} heroes, ${facets.sizes.length} sizes, ` +
-      `${facets.tiers.length} tiers, ${facets.tags.length} tags, ${facets.enchantments.length} enchantments`,
+      `${facets.tiers.length} tiers, ${facets.types.length} types, ${facets.tags.length} tags, ${facets.enchantments.length} enchantments`,
   );
   console.log(`  main bundle:  ${fmt(size)} ${sizeNote}`);
   console.log(`  enchantments: ${fmt(enchantSize)} (lazy, ${enchantmentsData.meta.count} items)`);
+  console.log(`  quests:       ${fmt(questsSize)} (lazy, ${questsData.meta.count} items)`);
 }
 
 main().catch((err) => {

@@ -136,10 +136,38 @@
     object-fit: cover;
   }
 
-  &.is-cover.is-circle .CardImage-img {
+  // Detail view: the frame is already skill-sized — fill it edge-to-edge.
+  &.is-fill.is-circle .CardImage-img {
+    top: 0;
+    left: 0;
+    transform: none;
+    width: 100%;
+    height: 100%;
+  }
+
+  // Inset vignette on circular skill art (matches cover tile vignette).
+  &.is-circle::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    height: 60%;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
     box-shadow:
-      inset 0 2px 6px rgba(0, 0, 0, 0.5),
-      inset 0 -1px 3px rgba(0, 0, 0, 0.25);
+      inset 0 2px 8px rgba(0, 0, 0, 0.45),
+      inset 0 0 1px rgba(0, 0, 0, 0.3);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  &.is-fill.is-circle::after {
+    top: 0;
+    left: 0;
+    transform: none;
+    width: 100%;
+    height: 100%;
   }
 
   &-fallback {

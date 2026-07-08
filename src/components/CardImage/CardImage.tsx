@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import type { Size } from 'types/bazaar';
 
@@ -46,8 +46,15 @@ export const CardImage = ({ src, alt, size, circle, cover, fill, eager }: CardIm
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
 
+  useEffect(() => {
+    setLoaded(false);
+    setFailed(false);
+  }, [src]);
+
   const shape = circle ? 'is-circle' : fill ? 'is-fill' : sizeClass(size);
-  const className = ['CardImage', cover && 'is-cover', shape].filter(Boolean).join(' ');
+  const className = ['CardImage', cover && 'is-cover', shape, failed && 'is-failed']
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div className={className}>

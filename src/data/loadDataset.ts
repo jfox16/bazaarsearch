@@ -1,4 +1,4 @@
-import type { BazaarDataset, EnchantmentsData } from 'types/bazaar';
+import type { BazaarDataset, EnchantmentsData, QuestsData } from 'types/bazaar';
 
 // Dynamic imports so Vite code-splits the data into separate chunks that load
 // on demand rather than bloating the initial JS bundle. Each lazy load is timed
@@ -15,6 +15,7 @@ export const loadDataset = async (): Promise<BazaarDataset> => {
 };
 
 let enchantmentsPromise: Promise<EnchantmentsData> | null = null;
+let questsPromise: Promise<QuestsData> | null = null;
 
 /** Loaded only when an item's detail view needs enchantments. Cached after first call. */
 export const loadEnchantments = (): Promise<EnchantmentsData> => {
@@ -29,4 +30,19 @@ export const loadEnchantments = (): Promise<EnchantmentsData> => {
     });
   }
   return enchantmentsPromise;
+};
+
+/** Loaded only when an item's detail view needs quests. Cached after first call. */
+export const loadQuests = (): Promise<QuestsData> => {
+  if (!questsPromise) {
+    const start = performance.now();
+    console.info('[bazaar] quests: loading lazy chunk...');
+    questsPromise = import('./quests.json').then((mod) => {
+      const data = (mod.default ?? mod) as unknown as QuestsData;
+      const ms = Math.round(performance.now() - start);
+      console.info(`[bazaar] quests: ${data.meta.count} items in ${ms} ms`);
+      return data;
+    });
+  }
+  return questsPromise;
 };

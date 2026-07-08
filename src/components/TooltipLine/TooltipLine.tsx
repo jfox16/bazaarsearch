@@ -8,9 +8,15 @@ interface StatMatch {
   start: number;
   end: number;
   stat: StatKey;
-  label: string;
+  label?: string;
   value: string;
   prefix?: string;
+  /** Text between the label and the colored icon/value, e.g. " 1 item for ". */
+  middle?: string;
+  /** Lowercase stat word after the value, e.g. " damage". */
+  suffix?: string;
+  /** Text after the colored value, e.g. " second(s)". */
+  trailing?: string;
 }
 
 interface StatPattern {
@@ -22,9 +28,21 @@ interface StatPattern {
 // Order matters: longer / more specific patterns first.
 const STAT_PATTERNS: StatPattern[] = [
   {
+    stat: 'haste',
+    regex:
+      /\bHaste\b(\s+(?:\d+\s+items?|an?\s+(?:item|\w+)|your[\w\s,]+?)\s+for\s+)(\d+(?:\.\d+)?)(\s+second(?:\(s\)|s)?)/gi,
+    getMatch: (m) => ({
+      stat: 'haste',
+      label: 'Haste',
+      middle: m[1],
+      value: m[2],
+      trailing: m[3],
+    }),
+  },
+  {
     stat: 'damage',
     regex: /\bDeal\s+(\d+)\s+Damage/gi,
-    getMatch: (m) => ({ stat: 'damage', label: 'Damage', value: m[1], prefix: 'Deal ' }),
+    getMatch: (m) => ({ stat: 'damage', value: m[1], prefix: 'Deal ', suffix: ' damage' }),
   },
   {
     stat: 'shield',
@@ -84,16 +102,47 @@ const StatPhrase = ({
   label,
   value,
   prefix,
-}: Pick<StatMatch, 'stat' | 'label' | 'value' | 'prefix'>) => {
+  middle,
+  suffix,
+  trailing,
+}: Pick<StatMatch, 'stat' | 'label' | 'value' | 'prefix' | 'middle' | 'suffix' | 'trailing'>) => {
   const { colorVar } = getStatDef(stat);
+
+  if (middle !== undefined) {
+    return (
+      <>
+        {prefix}
+        <span className="TooltipLine-stat" style={{ color: colorVar }}>
+          {label}
+        </span>
+        {middle}
+        <span className="TooltipLine-stat" style={{ color: colorVar }}>
+          <StatIcon stat={stat} size={14} />
+          {value}
+        </span>
+        {trailing}
+      </>
+    );
+  }
+
+  if (suffix) {
+    return (
+      <>
+        {prefix}
+        <span className="TooltipLine-stat" style={{ color: colorVar }}>
+          <StatIcon stat={stat} size={14} />
+          {value}
+          {suffix}
+        </span>
+      </>
+    );
+  }
 
   return (
     <>
       {prefix}
-      <span className="TooltipLine-stat">
-        <span className="TooltipLine-statLabel" style={{ color: colorVar }}>
-          {label}
-        </span>
+      <span className="TooltipLine-stat" style={{ color: colorVar }}>
+        {label}
         <StatIcon stat={stat} size={14} />
         {value}
       </span>
@@ -119,6 +168,9 @@ const formatTooltipText = (text: string): ReactNode[] => {
         label={match.label}
         value={match.value}
         prefix={match.prefix}
+        middle={match.middle}
+        suffix={match.suffix}
+        trailing={match.trailing}
       />,
     );
     cursor = match.end;
@@ -133,8 +185,14 @@ const formatTooltipText = (text: string): ReactNode[] => {
 
 interface TooltipLineProps {
   text: string;
+  /** Skip inline stat icons/colors — use when stats are shown separately (e.g. card detail header). */
+  plain?: boolean;
 }
 
-export const TooltipLine = ({ text }: TooltipLineProps) => (
-  <span className="TooltipLine">{formatTooltipText(text).map((node, i) => <Fragment key={i}>{node}</Fragment>)}</span>
+export const TooltipLine = ({ text, plain }: TooltipLineProps) => (
+  <span className="TooltipLine">
+    {(plain ? [text] : formatTooltipText(text)).map((node, i) => (
+      <Fragment key={i}>{node}</Fragment>
+    ))}
+  </span>
 );

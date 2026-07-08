@@ -9,6 +9,7 @@ import { KindFilter } from './fields/KindFilter';
 import { HeroFilter } from './fields/HeroFilter';
 import { SizeFilter } from './fields/SizeFilter';
 import { TierFilter } from './fields/TierFilter';
+import { TypeFilter } from './fields/TypeFilter';
 import { TagFilter } from './fields/TagFilter';
 
 import './FilterForm.scss';
@@ -16,6 +17,7 @@ import './FilterForm.scss';
 export const FilterForm = () => {
   const filter = useBazaarStore((s) => s.filter);
   const clearFilters = useBazaarStore((s) => s.clearFilters);
+  const textFilterKey = useBazaarStore((s) => s.textFilterKey);
   const totalCount = useBazaarStore((s) => s.entries.length);
   const filtered = useFilteredEntries();
 
@@ -25,6 +27,7 @@ export const FilterForm = () => {
     filter.heroes.size > 0 ||
     filter.sizes.size > 0 ||
     filter.tiers.size > 0 ||
+    filter.types.size > 0 ||
     filter.tags.size > 0;
 
   return (
@@ -38,11 +41,12 @@ export const FilterForm = () => {
         )}
       </div>
 
-      <TextFilter />
+      <TextFilter key={textFilterKey} />
       <KindFilter />
       <HeroFilter />
       <SizeFilter />
       <TierFilter />
+      <TypeFilter />
       <TagFilter />
 
       <DataStatus />

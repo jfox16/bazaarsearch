@@ -26,6 +26,7 @@ export const TextFilter = () => {
       ...detected.heroes.map(formatHeroLabel),
       ...detected.sizes,
       ...detected.tiers,
+      ...detected.types,
       ...detected.tags,
     ],
     [detected],

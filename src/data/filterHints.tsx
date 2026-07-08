@@ -52,7 +52,7 @@ export const SEARCH_HINT = (
   </>
 );
 
-export const TYPE_HINT = (
+export const KIND_HINT = (
   <p>
     Switch between items and skills. In search, use <code>t:item</code> or <code>t:skill</code>.
   </p>
@@ -78,17 +78,19 @@ export const TIER_HINT = (
   </p>
 );
 
-export const TAG_HINT = (
+export const ITEM_TYPE_HINT = (
   <p>
-    Filter by card tags. In search, use <code>t:burn</code>, <code>t:loot</code>, etc.{' '}
-    <strong>Any</strong> = match at least one selected tag; <strong>All</strong> = card must have
-    every selected tag.
+    Filter by item category — Weapon, Toy, Tool, etc. In search, use <code>t:weapon</code>,{' '}
+    <code>t:toy</code>, or plain words like <code>weapon</code>.
   </p>
 );
 
-export const TAG_MATCH_ANY_HINT = <p>Match cards that have any of the selected tags.</p>;
-
-export const TAG_MATCH_ALL_HINT = <p>Match only cards that have every selected tag.</p>;
+export const TAG_HINT = (
+  <p>
+    Filter by mechanics and categories — Burn, Shield, Weapon, etc. In search, use{' '}
+    <code>t:burn</code>, <code>t:shield</code>, etc.
+  </p>
+);
 
 export const kindChipHint = (kind: 'item' | 'skill') =>
   kind === 'item' ? (
@@ -150,6 +152,12 @@ export const tierChipHint = (tier: string) => {
     </p>
   );
 };
+
+export const typeChipHint = (type: string) => (
+  <p>
+    Filter by the <strong>{type}</strong> type. Search with <code>t:{type.toLowerCase()}</code>.
+  </p>
+);
 
 export const tagChipHint = (tag: string) => (
   <p>

@@ -72,6 +72,7 @@ export interface SmartQueryResult {
     heroes: string[];
     sizes: string[];
     tiers: string[];
+    types: string[];
     tags: string[];
   };
 }
@@ -81,6 +82,7 @@ const emptyDetected = (): SmartQueryResult['detected'] => ({
   heroes: [],
   sizes: [],
   tiers: [],
+  types: [],
   tags: [],
 });
 
@@ -93,6 +95,8 @@ export const parseSmartQuery = (filter: BazaarFilter, facets: Facets): SmartQuer
   if (!raw) return { filter, detected: emptyDetected() };
 
   const heroLookup = buildLookup(facets.heroes, HERO_ALIASES);
+  const typeLookup = buildLookup(facets.types);
+  const typeSet = new Set(facets.types);
   const tagLookup = buildLookup(facets.tags, TAG_ALIASES);
   const tagSet = new Set(facets.tags);
 
@@ -100,6 +104,7 @@ export const parseSmartQuery = (filter: BazaarFilter, facets: Facets): SmartQuer
   const heroes = new Set(filter.heroes);
   const sizes = new Set(filter.sizes);
   const tiers = new Set(filter.tiers);
+  const types = new Set(filter.types);
   const tags = new Set(filter.tags);
   const tagGroups = [...filter.tagGroups];
   const nameGroups = [...filter.nameGroups];
@@ -130,11 +135,26 @@ export const parseSmartQuery = (filter: BazaarFilter, facets: Facets): SmartQuer
         continue;
       }
 
+      const type =
+        typeLookup.get(key) ?? (key.endsWith('s') ? typeLookup.get(key.slice(0, -1)) : undefined);
+      if (type) {
+        types.add(type);
+        values.push(type);
+        detected.types.push(type);
+        continue;
+      }
+
       const tag =
         tagLookup.get(key) ?? (key.endsWith('s') ? tagLookup.get(key.slice(0, -1)) : undefined);
       if (tag) {
         values.push(tag);
-        detected.tags.push(tag);
+        if (typeSet.has(tag)) {
+          types.add(tag);
+          detected.types.push(tag);
+        } else {
+          tags.add(tag);
+          detected.tags.push(tag);
+        }
         const ref = `${tag}Reference`;
         if (tagSet.has(ref)) values.push(ref);
         continue;
@@ -148,6 +168,8 @@ export const parseSmartQuery = (filter: BazaarFilter, facets: Facets): SmartQuer
   const resolvePlainToken = (token: string): boolean => {
     const heroesBefore = heroes.size;
     const kindsBefore = kinds.size;
+    const typesBefore = types.size;
+    const tagsBefore = tags.size;
 
     const group = { values: [token], matchAll: true };
     const resolved = resolveTagValues(group);
@@ -155,7 +177,14 @@ export const parseSmartQuery = (filter: BazaarFilter, facets: Facets): SmartQuer
       tagGroups.push(resolved);
       return true;
     }
-    if (heroes.size > heroesBefore || kinds.size > kindsBefore) return true;
+    if (
+      heroes.size > heroesBefore ||
+      kinds.size > kindsBefore ||
+      types.size > typesBefore ||
+      tags.size > tagsBefore
+    ) {
+      return true;
+    }
 
     const size = SIZE_ALIASES[lower(token)];
     if (size) {
@@ -250,6 +279,7 @@ export const parseSmartQuery = (filter: BazaarFilter, facets: Facets): SmartQuer
     detected.heroes.length ||
     detected.sizes.length ||
     detected.tiers.length ||
+    detected.types.length ||
     detected.tags.length ||
     nameGroups.length > filter.nameGroups.length ||
     tooltipGroups.length > filter.tooltipGroups.length ||
@@ -270,6 +300,7 @@ export const parseSmartQuery = (filter: BazaarFilter, facets: Facets): SmartQuer
       heroes,
       sizes,
       tiers,
+      types,
       tags,
       tagGroups,
       nameGroups,

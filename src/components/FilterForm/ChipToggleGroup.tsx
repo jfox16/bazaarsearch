@@ -14,8 +14,6 @@ interface ChipToggleGroupProps {
   options: ChipOption[];
   selected: Set<string>;
   onToggle: (value: string) => void;
-  /** Optional right-aligned control (e.g. a match-all toggle). */
-  action?: React.ReactNode;
   /** Constrain height and scroll when there are many options (e.g. tags). */
   scroll?: boolean;
 }
@@ -26,7 +24,6 @@ export const ChipToggleGroup = ({
   options,
   selected,
   onToggle,
-  action,
   scroll,
 }: ChipToggleGroupProps) => {
   if (options.length === 0) return null;
@@ -42,7 +39,6 @@ export const ChipToggleGroup = ({
             </Tooltip>
           )}
         </span>
-        {action}
       </div>
       <div className={`ChipToggleGroup-chips${scroll ? ' is-scroll' : ''}`}>
         {options.map((option) => {

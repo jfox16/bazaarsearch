@@ -38,6 +38,11 @@ const matchesTier = (
   return true;
 };
 
+const matchesSetFilter = (entryValues: Set<string>, selected: Set<string>): boolean => {
+  if (!selected.size) return true;
+  return [...selected].some((value) => entryValues.has(value));
+};
+
 export const filterCards = (entries: BazaarEntry[], filter: BazaarFilter): BazaarEntry[] => {
   const {
     text,
@@ -45,8 +50,8 @@ export const filterCards = (entries: BazaarEntry[], filter: BazaarFilter): Bazaa
     heroes,
     sizes,
     tiers,
+    types,
     tags,
-    tagMatchAll,
     nameGroups,
     nameExact,
     tooltipGroups,
@@ -63,14 +68,11 @@ export const filterCards = (entries: BazaarEntry[], filter: BazaarFilter): Bazaa
     if (!matchesTier(entry.startingTier, tiers, tierMin, tierMax)) return false;
 
     const entryTags = new Set([...entry.tags, ...entry.hiddenTags, ...entry.customTags]);
+    const entryTypes = new Set(entry.tags);
 
-    if (tags.size) {
-      if (tagMatchAll) {
-        for (const tag of tags) if (!entryTags.has(tag)) return false;
-      } else if (![...tags].some((tag) => entryTags.has(tag))) {
-        return false;
-      }
-    }
+    if (!matchesSetFilter(entryTypes, types)) return false;
+
+    if (!matchesSetFilter(entryTags, tags)) return false;
 
     for (const group of tagGroups) {
       if (!matchesTagGroup(entryTags, group)) return false;

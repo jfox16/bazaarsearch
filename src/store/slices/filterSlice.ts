@@ -1,6 +1,6 @@
 import type { StateCreator } from 'zustand';
 
-import type { BazaarFilter, Kind, Tier, ToggleFilterKey } from 'types/bazaar';
+import type { BazaarFilter, Kind, Size, Tier, ToggleFilterKey } from 'types/bazaar';
 
 import type { BazaarState } from '../types';
 
@@ -14,8 +14,8 @@ const createDefaultFilter = (): BazaarFilter => ({
   heroes: new Set<string>(),
   sizes: new Set<string>(),
   tiers: new Set<Tier>(),
+  types: new Set<string>(),
   tags: new Set<string>(),
-  tagMatchAll: false,
   nameGroups: [],
   nameExact: null,
   tooltipGroups: [],
@@ -34,15 +34,22 @@ const toggleInSet = <T,>(set: Set<T>, value: T): Set<T> => {
 /** The active search/filter query and the actions that mutate it. */
 export interface FilterSlice {
   filter: BazaarFilter;
+  textFilterKey: number;
   setText: (text: string) => void;
   toggleFilter: (key: ToggleFilterKey, value: string) => void;
-  setTagMatchAll: (value: boolean) => void;
+  applyTypeFilter: (type: string) => void;
+  applyTagFilter: (tag: string) => void;
+  applyHeroFilter: (hero: string) => void;
+  applyKindFilter: (kind: Kind) => void;
+  applySizeFilter: (size: Size) => void;
+  applyTierFilter: (tier: Tier) => void;
   clearFilters: () => void;
   isFilterActive: () => boolean;
 }
 
 export const createFilterSlice: StateCreator<BazaarState, [], [], FilterSlice> = (set, get) => ({
   filter: createDefaultFilter(),
+  textFilterKey: 0,
 
   setText: (text) => set((s) => ({ filter: { ...s.filter, text } })),
 
@@ -56,9 +63,72 @@ export const createFilterSlice: StateCreator<BazaarState, [], [], FilterSlice> =
       return { filter: { ...s.filter, [key]: toggleInSet(s.filter[key], value) } };
     }),
 
-  setTagMatchAll: (value) => set((s) => ({ filter: { ...s.filter, tagMatchAll: value } })),
+  applyTypeFilter: (type) =>
+    set((s) => ({
+      filter: {
+        ...createDefaultFilter(),
+        types: new Set([type]),
+      },
+      textFilterKey: s.textFilterKey + 1,
+    })),
 
-  clearFilters: () => set({ filter: createDefaultFilter() }),
+  applyTagFilter: (tag) => {
+    const tags = new Set([tag]);
+    if (!tag.endsWith('Reference')) tags.add(`${tag}Reference`);
+    set((s) => ({
+      filter: {
+        ...createDefaultFilter(),
+        kinds: new Set<Kind>(['item', 'skill']),
+        tags,
+      },
+      textFilterKey: s.textFilterKey + 1,
+    }));
+  },
+
+  applyHeroFilter: (hero) =>
+    set((s) => ({
+      filter: {
+        ...createDefaultFilter(),
+        kinds: new Set<Kind>(['item', 'skill']),
+        heroes: new Set([hero]),
+      },
+      textFilterKey: s.textFilterKey + 1,
+    })),
+
+  applyKindFilter: (kind) =>
+    set((s) => ({
+      filter: {
+        ...createDefaultFilter(),
+        kinds: new Set([kind]),
+      },
+      textFilterKey: s.textFilterKey + 1,
+    })),
+
+  applySizeFilter: (size) =>
+    set((s) => ({
+      filter: {
+        ...createDefaultFilter(),
+        kinds: new Set<Kind>(['item']),
+        sizes: new Set([size]),
+      },
+      textFilterKey: s.textFilterKey + 1,
+    })),
+
+  applyTierFilter: (tier) =>
+    set((s) => ({
+      filter: {
+        ...createDefaultFilter(),
+        kinds: new Set<Kind>(['item', 'skill']),
+        tiers: new Set([tier]),
+      },
+      textFilterKey: s.textFilterKey + 1,
+    })),
+
+  clearFilters: () =>
+    set((s) => ({
+      filter: createDefaultFilter(),
+      textFilterKey: s.textFilterKey + 1,
+    })),
 
   isFilterActive: () => {
     const f = get().filter;
@@ -68,6 +138,7 @@ export const createFilterSlice: StateCreator<BazaarState, [], [], FilterSlice> =
       f.heroes.size > 0 ||
       f.sizes.size > 0 ||
       f.tiers.size > 0 ||
+      f.types.size > 0 ||
       f.tags.size > 0
     );
   },

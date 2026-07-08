@@ -1,7 +1,32 @@
+@use 'styles/theme' as *;
+
 .CardGrid {
+  --grid-min: 120px;
+  --grid-gap: 12px;
+
+  @include desktop {
+    @media (min-width: 1100px) {
+      --grid-min: 140px;
+    }
+
+    @media (min-width: 1400px) {
+      --grid-min: 160px;
+      --grid-gap: 14px;
+    }
+
+    @media (min-width: 1700px) {
+      --grid-min: 180px;
+    }
+
+    @media (min-width: 2000px) {
+      --grid-min: 200px;
+      --grid-gap: 16px;
+    }
+  }
+
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(var(--grid-min), 1fr));
+  gap: var(--grid-gap);
   padding: 16px;
 
   &-sentinel {

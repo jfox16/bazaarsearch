@@ -5,7 +5,14 @@ import type { BazaarEntry, DatasetMeta, Facets } from 'types/bazaar';
 
 import type { BazaarState } from '../types';
 
-const EMPTY_FACETS: Facets = { heroes: [], sizes: [], tiers: [], tags: [], enchantments: [] };
+const EMPTY_FACETS: Facets = {
+  heroes: [],
+  sizes: [],
+  tiers: [],
+  types: [],
+  tags: [],
+  enchantments: [],
+};
 
 /** Dataset loading + the loaded data itself. */
 export interface DataSlice {
@@ -36,7 +43,12 @@ export const createDataSlice: StateCreator<BazaarState, [], [], DataSlice> = (se
       set({
         status: 'ready',
         entries: data.entries,
-        facets: data.facets,
+        facets: {
+          ...data.facets,
+          types:
+            data.facets.types ??
+            [...new Set(data.entries.flatMap((e) => e.tags))].sort((a, b) => a.localeCompare(b)),
+        },
         meta: data.meta,
         dataLoadMs: Math.round(performance.now() - start),
       });

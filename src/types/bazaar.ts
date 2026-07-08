@@ -26,6 +26,9 @@ export interface Facets {
   heroes: string[];
   sizes: string[];
   tiers: string[];
+  /** Item/skill category tags (e.g. Weapon, Toy, Tool) from visible `tags`. */
+  types: string[];
+  /** All filterable tags — types plus mechanics (e.g. Burn, Shield). */
   tags: string[];
   enchantments: string[];
 }
@@ -49,6 +52,15 @@ export interface Enchantment {
   tooltips: string[];
 }
 
+export interface QuestEntry {
+  tooltips: string[];
+  rewardTooltips: string[];
+}
+
+export interface Quest {
+  entries: QuestEntry[];
+}
+
 /**
  * Curated short descriptions for statless cards, keyed by the card's exact
  * `name`. Intentionally partial — cards without an entry show no description.
@@ -61,8 +73,14 @@ export interface EnchantmentsData {
   byId: Record<string, Enchantment[]>;
 }
 
+/** Lazily loaded, keyed by item id. */
+export interface QuestsData {
+  meta: { generatedAt: string; count: number };
+  byId: Record<string, Quest[]>;
+}
+
 /** Set-based filter keys that support toggling a single value on/off. */
-export type ToggleFilterKey = 'kinds' | 'heroes' | 'sizes' | 'tiers' | 'tags';
+export type ToggleFilterKey = 'kinds' | 'heroes' | 'sizes' | 'tiers' | 'types' | 'tags';
 
 /** A group of match values combined with AND or OR (from `&` / `|` in search syntax). */
 export interface MatchGroup {
@@ -76,9 +94,8 @@ export interface BazaarFilter {
   heroes: Set<string>;
   sizes: Set<string>;
   tiers: Set<Tier>;
+  types: Set<string>;
   tags: Set<string>;
-  /** When true, an entry must have every selected tag; otherwise any. */
-  tagMatchAll: boolean;
   /** Inline `n:` filters — each group must match the card name. */
   nameGroups: MatchGroup[];
   /** Inline `n=` exact name filter. */
