@@ -32,6 +32,15 @@
     border: none;
     border-radius: 0;
     box-shadow: none;
+    pointer-events: none;
+  }
+}
+
+// Mobile: let bare content fill the width (minus the overlay's margin) instead
+// of shrinking to its content.
+@media (max-width: 620px) {
+  .Modal-content.is-bare {
+    width: 100%;
   }
 }
 

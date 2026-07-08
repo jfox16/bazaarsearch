@@ -1,0 +1,19 @@
+// Typography design tokens — semantic font-size scale.
+// All sizes are rem-based so they scale with the html root size below.
+
+:root {
+  --font-size-2xs: 0.78rem; // micro labels, blurbs, compact toggles
+  --font-size-xs: 0.82rem; // badges, captions, section labels
+  --font-size-sm: 0.875rem; // chips, tier labels, compact controls
+  --font-size-md: 0.95rem; // secondary body, buttons, card names
+  --font-size-base: 1rem; // inputs, default prose
+  --font-size-lg: 1.05rem; // emphasized stats, subtitles
+  --font-size-xl: 1.2rem; // header brand, prominent titles
+  --font-size-2xl: 1.4rem; // modal / detail headings
+  --font-size-3xl: 1.65rem; // display, fallback glyphs
+}
+
+// Slightly larger than the browser default (16px) so rem tokens read bigger app-wide.
+html {
+  font-size: 17px;
+}

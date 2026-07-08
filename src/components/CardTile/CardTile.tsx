@@ -12,8 +12,10 @@ interface CardTileProps {
 }
 
 export const CardTile = ({ entry, onClick }: CardTileProps) => {
-  // Brief descriptor: main visible tags, e.g. "Food Tool".
-  const descriptor = entry.tags.slice(0, 4).join(' ');
+  const isSkill = entry.kind === 'skill';
+  // Brief descriptor: main visible tags for items; skills always show as "Skill".
+  const descriptor =
+    isSkill ? 'Skill' : entry.tags.slice(0, 4).join(' ') || null;
   const stats = getBaseStats(entry);
   // Cards with no numeric stats show a short description instead of an empty gap.
   const blurb = stats.length === 0 ? getCardBlurb(entry) : null;
@@ -30,12 +32,12 @@ export const CardTile = ({ entry, onClick }: CardTileProps) => {
         src={entry.imageUrl}
         alt={entry.name}
         size={entry.size}
-        circle={entry.kind === 'skill'}
+        circle={isSkill}
         cover
       />
       <span className="CardTile-name">{entry.name}</span>
       {descriptor && <span className="CardTile-descriptor">{descriptor}</span>}
-      {stats.length > 0 && (
+      {!isSkill && stats.length > 0 && (
         <span className="CardTile-stats">
           {stats.map(({ stat, value }) => (
             <span key={stat} className="CardTile-stat">

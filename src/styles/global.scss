@@ -1,3 +1,6 @@
+@use 'styles/tokens';
+@use 'styles/typography';
+
 // The Bazaar-inspired dark "marketplace" palette.
 :root {
   --color-bg: #17110c;
@@ -13,13 +16,6 @@
   --color-accent: #e8933a;
   --color-accent-hover: #f2a24e;
   --color-brown: #4a3826;
-
-  // Tier colors
-  --tier-bronze: #cd7f32;
-  --tier-silver: #c0c0c0;
-  --tier-gold: #ffd24a;
-  --tier-diamond: #7fd4ff;
-  --tier-legendary: #b06bff;
 
   --header-height: 60px;
   --header-height-mobile: 50px;

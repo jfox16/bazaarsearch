@@ -1,0 +1,12 @@
+.SellPrice {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--tier-gold);
+  font-weight: 700;
+
+  svg {
+    flex-shrink: 0;
+    opacity: 0.9;
+  }
+}

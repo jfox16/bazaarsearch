@@ -1,0 +1,119 @@
+.Tooltip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+
+  &-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--color-text-muted);
+    line-height: 0;
+    transition: color 0.12s ease;
+
+    &:hover,
+    &:focus-visible {
+      color: var(--color-accent);
+      outline: none;
+    }
+  }
+
+  &-content {
+    position: absolute;
+    z-index: 50;
+    left: 50%;
+    width: max-content;
+    max-width: min(280px, calc(100vw - 32px));
+    padding: 10px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+    color: var(--color-text-dim);
+    font-size: var(--font-size-sm);
+    font-weight: 400;
+    line-height: 1.45;
+    text-align: left;
+    text-transform: none;
+    letter-spacing: normal;
+    white-space: normal;
+    box-shadow: 0 8px 24px rgb(0 0 0 / 35%);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(4px);
+    transition:
+      opacity 0.12s ease,
+      visibility 0.12s ease,
+      transform 0.12s ease;
+
+    p {
+      margin: 0 0 6px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    ul {
+      margin: 4px 0 8px;
+      padding-left: 1.1em;
+    }
+
+    li {
+      margin-bottom: 2px;
+    }
+
+    code {
+      padding: 1px 4px;
+      border-radius: 4px;
+      background: var(--color-bg-elevated);
+      color: var(--color-text);
+      font-size: var(--font-size-xs);
+    }
+
+    strong {
+      color: var(--color-text);
+      font-weight: 600;
+    }
+  }
+
+  &[data-side='top'] &-content {
+    bottom: calc(100% + 8px);
+    transform: translateX(-50%) translateY(4px);
+  }
+
+  &[data-side='bottom'] &-content {
+    top: calc(100% + 8px);
+    transform: translateX(-50%) translateY(-4px);
+  }
+
+  &[data-placed='fixed'] &-content {
+    position: fixed;
+    left: var(--tooltip-x);
+    top: var(--tooltip-y);
+    bottom: auto;
+    transform: translateY(0);
+  }
+
+  &:hover &-content,
+  &:focus-within &-content {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  &[data-placed='fixed']:hover &-content,
+  &[data-placed='fixed']:focus-within &-content {
+    transform: translateY(0);
+  }
+
+  &.is-block {
+    display: flex;
+    width: 100%;
+  }
+}

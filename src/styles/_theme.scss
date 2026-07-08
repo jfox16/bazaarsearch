@@ -1,5 +1,6 @@
-// Shared SCSS helpers (breakpoints, mixins). Color/spacing tokens are CSS
-// custom properties defined in global.scss so they can be used at runtime.
+// Shared SCSS helpers (breakpoints, mixins). Bazaar palette tokens live in
+// _tokens.scss (tiers, stats, enchantments); typography in _typography.scss;
+// app chrome tokens in global.scss.
 
 $breakpoint-mobile: 800px;
 

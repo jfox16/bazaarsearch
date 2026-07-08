@@ -1,12 +1,16 @@
 import './ChipToggleGroup.scss';
 
+import { HintTrigger, Tooltip } from 'components/Tooltip/Tooltip';
+
 export interface ChipOption {
   value: string;
   label: string;
+  hint?: React.ReactNode;
 }
 
 interface ChipToggleGroupProps {
   label: string;
+  hint?: React.ReactNode;
   options: ChipOption[];
   selected: Set<string>;
   onToggle: (value: string) => void;
@@ -18,6 +22,7 @@ interface ChipToggleGroupProps {
 
 export const ChipToggleGroup = ({
   label,
+  hint,
   options,
   selected,
   onToggle,
@@ -29,15 +34,21 @@ export const ChipToggleGroup = ({
   return (
     <div className="ChipToggleGroup">
       <div className="ChipToggleGroup-header">
-        <span className="ChipToggleGroup-label">{label}</span>
+        <span className="ChipToggleGroup-label">
+          {label}
+          {hint && (
+            <Tooltip content={hint}>
+              <HintTrigger label={`About ${label} filter`} size={12} />
+            </Tooltip>
+          )}
+        </span>
         {action}
       </div>
       <div className={`ChipToggleGroup-chips${scroll ? ' is-scroll' : ''}`}>
         {options.map((option) => {
           const active = selected.has(option.value);
-          return (
+          const chip = (
             <button
-              key={option.value}
               type="button"
               className="Chip"
               data-active={active}
@@ -46,6 +57,16 @@ export const ChipToggleGroup = ({
             >
               {option.label}
             </button>
+          );
+
+          if (!option.hint) {
+            return <span key={option.value}>{chip}</span>;
+          }
+
+          return (
+            <Tooltip key={option.value} content={option.hint}>
+              {chip}
+            </Tooltip>
           );
         })}
       </div>

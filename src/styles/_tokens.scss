@@ -1,0 +1,43 @@
+// BazaarDB / howbazaar in-game palette (tiers, combat stats, enchantments).
+// Values match bazaardb.gg card pages (e.g. Bushel enchantment chips, Heal text).
+
+:root {
+  // Item tiers
+  --tier-bronze: #cd7f32;
+  --tier-silver: #aaaaaa;
+  --tier-gold: #e4b60e;
+  --tier-diamond: #02a3d8;
+  --tier-legendary: #f97e07;
+
+  // Combat stats
+  --stat-damage: #f5503d;
+  --stat-burn: #ff9f45;
+  --stat-poison: #0ebe4f;
+  --stat-shield: #f4cf20;
+  --stat-heal: #8eea31;
+  --stat-regen: #8eea31;
+  --stat-haste: #00ecc3;
+  --stat-charge: #00ecc3;
+  --stat-freeze: #3fc8f7;
+  --stat-slow: #cb9f6e;
+  --stat-crit: #f5523c;
+  --stat-ammo: #ff8e00;
+  --stat-lifesteal: #9d4a6f;
+  --stat-value: #ffcd19;
+  --stat-tag: #98a8fe;
+
+  // Enchantments
+  --enchant-deadly: #f5523c;
+  --enchant-fiery: #fa943e;
+  --enchant-golden: #f4d021;
+  --enchant-heavy: #cca06e;
+  --enchant-icy: #3ec8f8;
+  --enchant-obsidian: #f6d9ab;
+  --enchant-radiant: #f6d9ab;
+  --enchant-restorative: #8fea31;
+  --enchant-shielded: #f4d021;
+  --enchant-shiny: #f6d9ab;
+  --enchant-toxic: #0ebe4e;
+  --enchant-turbo: #00eac2;
+  --enchant-mossy: #8eea31;
+}

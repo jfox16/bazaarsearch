@@ -64,13 +64,31 @@ export interface EnchantmentsData {
 /** Set-based filter keys that support toggling a single value on/off. */
 export type ToggleFilterKey = 'kinds' | 'heroes' | 'sizes' | 'tiers' | 'tags';
 
+/** A group of match values combined with AND or OR (from `&` / `|` in search syntax). */
+export interface MatchGroup {
+  values: string[];
+  matchAll: boolean;
+}
+
 export interface BazaarFilter {
   text: string;
   kinds: Set<Kind>;
   heroes: Set<string>;
   sizes: Set<string>;
-  tiers: Set<string>;
+  tiers: Set<Tier>;
   tags: Set<string>;
   /** When true, an entry must have every selected tag; otherwise any. */
   tagMatchAll: boolean;
+  /** Inline `n:` filters — each group must match the card name. */
+  nameGroups: MatchGroup[];
+  /** Inline `n=` exact name filter. */
+  nameExact: string | null;
+  /** Inline `o:` filters — each group must match tooltip text. */
+  tooltipGroups: MatchGroup[];
+  /** Inline `t:` filters — each resolved group must match card tags/heroes/kinds. */
+  tagGroups: MatchGroup[];
+  /** Inline `r>=` minimum starting tier. */
+  tierMin: Tier | null;
+  /** Inline `r<=` maximum starting tier. */
+  tierMax: Tier | null;
 }

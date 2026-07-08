@@ -44,7 +44,7 @@
   }
 
   &-name {
-    font-size: 0.8rem;
+    font-size: var(--font-size-md);
     line-height: 1.2;
     color: var(--color-text-dim);
     overflow: hidden;
@@ -56,7 +56,7 @@
   &-descriptor {
     // Sit tight under the name (cancels most of the column gap).
     margin-top: -5px;
-    font-size: 0.68rem;
+    font-size: var(--font-size-2xs);
     line-height: 1.2;
     color: var(--color-text-muted);
     overflow: hidden;
@@ -71,7 +71,7 @@
     align-items: center;
     gap: 2px 8px;
     margin-top: 2px;
-    font-size: 0.75rem;
+    font-size: var(--font-size-sm);
     font-weight: 600;
     color: var(--color-text);
   }
@@ -85,7 +85,7 @@
   // Shown for cards with no numeric stats, in place of the stat row.
   &-blurb {
     margin-top: 2px;
-    font-size: 0.66rem;
+    font-size: var(--font-size-2xs);
     line-height: 1.25;
     font-style: italic;
     color: var(--color-text-dim);

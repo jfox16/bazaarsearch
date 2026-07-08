@@ -1,6 +1,7 @@
 import { X } from 'lucide-react';
 
 import { DataStatus } from 'components/DataStatus/DataStatus';
+import { isDefaultKinds } from 'store/slices/filterSlice';
 import { useBazaarStore, useFilteredEntries } from 'store/useBazaarStore';
 
 import { TextFilter } from './fields/TextFilter';
@@ -20,7 +21,7 @@ export const FilterForm = () => {
 
   const isActive =
     filter.text.trim() !== '' ||
-    filter.kinds.size > 0 ||
+    !isDefaultKinds(filter.kinds) ||
     filter.heroes.size > 0 ||
     filter.sizes.size > 0 ||
     filter.tiers.size > 0 ||

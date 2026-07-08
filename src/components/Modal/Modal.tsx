@@ -32,10 +32,15 @@ export const Modal = ({ isOpen, onClose, children, bare }: ModalProps) => {
   if (!isOpen) return null;
 
   return (
-    <div className="Modal-overlay" onClick={onClose} role="presentation">
+    <div
+      className="Modal-overlay"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      role="presentation"
+    >
       <div
         className={bare ? 'Modal-content is-bare' : 'Modal-content'}
-        onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal
       >

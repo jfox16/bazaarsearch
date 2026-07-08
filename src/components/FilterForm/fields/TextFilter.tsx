@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Search, X } from 'lucide-react';
 
+import { Tooltip } from 'components/Tooltip/Tooltip';
+import { SEARCH_HINT } from 'data/filterHints';
+
 import { useDebouncedValue } from 'hooks/useDebouncedValue';
+import { formatHeroLabel } from 'functions/formatHeroLabel';
 import { useBazaarStore, useDetectedFilters } from 'store/useBazaarStore';
 
 import './TextFilter.scss';
@@ -19,7 +23,7 @@ export const TextFilter = () => {
   const detectedLabels = useMemo(
     () => [
       ...detected.kinds,
-      ...detected.heroes,
+      ...detected.heroes.map(formatHeroLabel),
       ...detected.sizes,
       ...detected.tiers,
       ...detected.tags,
@@ -30,11 +34,15 @@ export const TextFilter = () => {
   return (
     <div className="TextFilter">
       <div className="TextFilter-box">
-        <Search className="TextFilter-icon" size={16} aria-hidden />
+        <Tooltip content={SEARCH_HINT} side="bottom">
+          <span className="TextFilter-help" tabIndex={0} aria-label="Search help">
+            <Search className="TextFilter-icon" size={16} aria-hidden />
+          </span>
+        </Tooltip>
         <input
           className="TextFilter-input"
           type="text"
-          placeholder="Search — try jules regen, pyg large, loot..."
+          placeholder="jules food  or  pyg large"
           value={value}
           onChange={(e) => setValue(e.target.value)}
           aria-label="Search items and skills"

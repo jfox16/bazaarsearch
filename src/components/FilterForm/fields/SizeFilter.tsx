@@ -1,4 +1,5 @@
 import { ChipToggleGroup } from 'components/FilterForm/ChipToggleGroup';
+import { SIZE_HINT, sizeChipHint } from 'data/filterHints';
 import { useBazaarStore } from 'store/useBazaarStore';
 
 export const SizeFilter = () => {
@@ -9,7 +10,8 @@ export const SizeFilter = () => {
   return (
     <ChipToggleGroup
       label="Size"
-      options={sizes.map((s) => ({ value: s, label: s }))}
+      hint={SIZE_HINT}
+      options={sizes.map((s) => ({ value: s, label: s, hint: sizeChipHint(s) }))}
       selected={selected}
       onToggle={(value) => toggleFilter('sizes', value)}
     />

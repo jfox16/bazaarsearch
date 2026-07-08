@@ -1,4 +1,6 @@
 import { ChipToggleGroup } from 'components/FilterForm/ChipToggleGroup';
+import { HERO_HINT, heroChipHint } from 'data/filterHints';
+import { formatHeroLabel } from 'functions/formatHeroLabel';
 import { useBazaarStore } from 'store/useBazaarStore';
 
 export const HeroFilter = () => {
@@ -9,7 +11,8 @@ export const HeroFilter = () => {
   return (
     <ChipToggleGroup
       label="Hero"
-      options={heroes.map((h) => ({ value: h, label: h }))}
+      hint={HERO_HINT}
+      options={heroes.map((h) => ({ value: h, label: formatHeroLabel(h), hint: heroChipHint(h) }))}
       selected={selected}
       onToggle={(value) => toggleFilter('heroes', value)}
     />

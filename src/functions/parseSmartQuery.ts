@@ -1,55 +1,37 @@
-import type { BazaarFilter, Facets, Kind } from 'types/bazaar';
+import type { BazaarFilter, Facets, Kind, MatchGroup, Tier } from 'types/bazaar';
+
+import {
+  HERO_ALIASES,
+  KIND_ALIASES,
+  SIZE_ALIASES,
+  TAG_ALIASES,
+  TIER_ALIASES,
+} from './searchAliases';
 
 /**
- * Turns a free-text query into implicit facet filters.
+ * Parses BazaarDB-style inline search filters from the text query.
  *
- * Typing something like "jules regen", "pyg large items", "loot" or "fire"
- * automatically toggles the matching hero/size/kind/tier/tag filters, while any
- * words that don't map to a facet are left behind as a plain name/text search.
+ * Filters use a key, an operator, and a value — e.g. `t:burn`, `n:hammer`,
+ * `r<=s`, `s:m`. Space-separated filters are ANDed. Within a value, `|` is OR
+ * and `&` is AND.
  *
- * Matching is token-based (whitespace separated) and case-insensitive. Each
- * token resolves to at most one facet, checked in priority order:
- * kind → hero → size → tag → tier. Tags win over tiers so "gold" (a tag) does
- * not get swallowed by the Gold starting tier.
+ * @see https://bazaardb.gg/docs
+ *
+ * Supported filters:
+ * - n  — partial name match (`n=hammer` for exact)
+ * - t  — tag, hero, or type (`t:item`, `t:vanessa`, `t:burn|poison`)
+ * - s  — size (`s`, `m`, `l` or full names)
+ * - r  — starting tier (`b`, `s`, `g`, `d`, `l`; supports <= and >=)
+ * - o  — tooltip text (`o:burn|poison`)
+ *
+ * Plain words without a filter prefix are auto-resolved as hero, tag, size, tier,
+ * or type when recognized; any unrecognized words search names and tooltips.
  */
 
-const KIND_ALIASES: Record<string, Kind> = {
-  item: 'item',
-  items: 'item',
-  skill: 'skill',
-  skills: 'skill',
-};
-
-/** Short/nickname aliases for heroes (full names are matched from facets). */
-const HERO_ALIASES: Record<string, string> = {
-  pyg: 'Pygmalien',
-  van: 'Vanessa',
-  ness: 'Vanessa',
-};
-
-const SIZE_ALIASES: Record<string, string> = {
-  small: 'Small',
-  sm: 'Small',
-  medium: 'Medium',
-  med: 'Medium',
-  large: 'Large',
-  lg: 'Large',
-  lrg: 'Large',
-  big: 'Large',
-};
-
-/** Common synonyms that map onto a real tag name. */
-const TAG_ALIASES: Record<string, string> = {
-  fire: 'Burn',
-  burning: 'Burn',
-  dmg: 'Damage',
-  economy: 'Income',
-  econ: 'Income',
-};
+const FILTER_TOKEN_RE = /^(-)?([a-z]{1,2})(<=|>=|:|<|>|=)(.+)$/i;
 
 const lower = (value: string) => value.toLowerCase();
 
-/** Build a lowercased lookup { alias/value -> canonical facet value }. */
 const buildLookup = (values: string[], aliases: Record<string, string> = {}) => {
   const map = new Map<string, string>();
   for (const value of values) map.set(lower(value), value);
@@ -57,9 +39,34 @@ const buildLookup = (values: string[], aliases: Record<string, string> = {}) => 
   return map;
 };
 
+const splitFilterValues = (raw: string): MatchGroup => {
+  if (raw.includes('&')) {
+    return { values: raw.split('&').map((v) => v.trim()).filter(Boolean), matchAll: true };
+  }
+  if (raw.includes('|')) {
+    return { values: raw.split('|').map((v) => v.trim()).filter(Boolean), matchAll: false };
+  }
+  return { values: [raw.trim()].filter(Boolean), matchAll: true };
+};
+
+interface ParsedFilterToken {
+  key: string;
+  op: string;
+  value: string;
+  negate: boolean;
+}
+
+const parseFilterToken = (token: string): ParsedFilterToken | null => {
+  const match = token.match(FILTER_TOKEN_RE);
+  if (!match) return null;
+  const [, negatePrefix, key, op, value] = match;
+  if (!value) return null;
+  return { key: key.toLowerCase(), op, value, negate: negatePrefix === '-' };
+};
+
 export interface SmartQueryResult {
   filter: BazaarFilter;
-  /** Facet values that were auto-detected from the text, for UI feedback. */
+  /** Facet values auto-detected from inline filters, for UI feedback. */
   detected: {
     kinds: Kind[];
     heroes: string[];
@@ -69,29 +76,23 @@ export interface SmartQueryResult {
   };
 }
 
+const emptyDetected = (): SmartQueryResult['detected'] => ({
+  kinds: [],
+  heroes: [],
+  sizes: [],
+  tiers: [],
+  tags: [],
+});
+
 /**
- * Merges any facets detected in `filter.text` into the explicit filter sets and
- * strips the consumed words from the text query.
+ * Merges inline `filter:value` tokens from `filter.text` into the explicit filter
+ * state and strips consumed tokens from the text query.
  */
 export const parseSmartQuery = (filter: BazaarFilter, facets: Facets): SmartQueryResult => {
-  const empty: SmartQueryResult['detected'] = {
-    kinds: [],
-    heroes: [],
-    sizes: [],
-    tiers: [],
-    tags: [],
-  };
-
   const raw = filter.text.trim();
-
-  // Preserve the power-user OR syntax ("burn | poison") as plain text search.
-  if (!raw || raw.includes('|')) {
-    return { filter, detected: empty };
-  }
+  if (!raw) return { filter, detected: emptyDetected() };
 
   const heroLookup = buildLookup(facets.heroes, HERO_ALIASES);
-  const sizeLookup = buildLookup(facets.sizes, SIZE_ALIASES);
-  const tierLookup = buildLookup(facets.tiers);
   const tagLookup = buildLookup(facets.tags, TAG_ALIASES);
   const tagSet = new Set(facets.tags);
 
@@ -100,65 +101,148 @@ export const parseSmartQuery = (filter: BazaarFilter, facets: Facets): SmartQuer
   const sizes = new Set(filter.sizes);
   const tiers = new Set(filter.tiers);
   const tags = new Set(filter.tags);
+  const tagGroups = [...filter.tagGroups];
+  const nameGroups = [...filter.nameGroups];
+  const tooltipGroups = [...filter.tooltipGroups];
 
-  const detected: SmartQueryResult['detected'] = {
-    kinds: [],
-    heroes: [],
-    sizes: [],
-    tiers: [],
-    tags: [],
+  let nameExact = filter.nameExact;
+  let tierMin = filter.tierMin;
+  let tierMax = filter.tierMax;
+
+  const detected: SmartQueryResult['detected'] = emptyDetected();
+
+  const resolveTagValues = (group: MatchGroup): MatchGroup => {
+    const values: string[] = [];
+    for (const part of group.values) {
+      const key = lower(part);
+      const kind = KIND_ALIASES[key];
+      if (kind) {
+        kinds.clear();
+        kinds.add(kind);
+        detected.kinds.push(kind);
+        continue;
+      }
+
+      const hero = heroLookup.get(key);
+      if (hero) {
+        heroes.add(hero);
+        detected.heroes.push(hero);
+        continue;
+      }
+
+      const tag =
+        tagLookup.get(key) ?? (key.endsWith('s') ? tagLookup.get(key.slice(0, -1)) : undefined);
+      if (tag) {
+        values.push(tag);
+        detected.tags.push(tag);
+        const ref = `${tag}Reference`;
+        if (tagSet.has(ref)) values.push(ref);
+        continue;
+      }
+    }
+    return { ...group, values };
   };
 
-  const addTag = (tag: string) => {
-    tags.add(tag);
-    detected.tags.push(tag);
-    // Auto-include the matching "*Reference" tag so e.g. "regen" also surfaces
-    // items that reference regen, mirroring intent.
-    const ref = `${tag}Reference`;
-    if (tagSet.has(ref)) tags.add(ref);
+  const resolveTier = (value: string): Tier | undefined => TIER_ALIASES[lower(value)];
+
+  const resolvePlainToken = (token: string): boolean => {
+    const heroesBefore = heroes.size;
+    const kindsBefore = kinds.size;
+
+    const group = { values: [token], matchAll: true };
+    const resolved = resolveTagValues(group);
+    if (resolved.values.length) {
+      tagGroups.push(resolved);
+      return true;
+    }
+    if (heroes.size > heroesBefore || kinds.size > kindsBefore) return true;
+
+    const size = SIZE_ALIASES[lower(token)];
+    if (size) {
+      sizes.add(size);
+      detected.sizes.push(size);
+      return true;
+    }
+
+    const tier = resolveTier(token);
+    if (tier) {
+      tiers.add(tier);
+      detected.tiers.push(tier);
+      return true;
+    }
+
+    return false;
   };
 
   const leftover: string[] = [];
 
-  for (const token of raw.split(/\s+/)) {
-    const key = lower(token);
-
-    const kind = KIND_ALIASES[key];
-    if (kind) {
-      kinds.add(kind);
-      detected.kinds.push(kind);
+  for (const token of raw.split(/\s+/).filter(Boolean)) {
+    const parsed = parseFilterToken(token);
+    if (!parsed || parsed.negate) {
+      leftover.push(token);
       continue;
     }
 
-    const hero = heroLookup.get(key);
-    if (hero) {
-      heroes.add(hero);
-      detected.heroes.push(hero);
-      continue;
-    }
+    const { key, op, value } = parsed;
+    const group = splitFilterValues(value);
 
-    const size = sizeLookup.get(key);
-    if (size) {
-      sizes.add(size);
-      detected.sizes.push(size);
-      continue;
-    }
+    switch (key) {
+      case 'n': {
+        if (op === '=') {
+          nameExact = value;
+        } else {
+          nameGroups.push(group);
+        }
+        break;
+      }
 
-    // Tags win over tiers so "gold" (tag) isn't consumed by the Gold tier.
-    const tag = tagLookup.get(key) ?? (key.endsWith('s') ? tagLookup.get(key.slice(0, -1)) : undefined);
-    if (tag) {
-      addTag(tag);
-      continue;
-    }
+      case 't': {
+        const resolved = resolveTagValues(group);
+        if (resolved.values.length) tagGroups.push(resolved);
+        break;
+      }
 
-    const tier = tierLookup.get(key);
-    if (tier) {
-      tiers.add(tier);
-      detected.tiers.push(tier);
-      continue;
-    }
+      case 's': {
+        for (const part of group.values) {
+          const size = SIZE_ALIASES[lower(part)];
+          if (size) {
+            sizes.add(size);
+            detected.sizes.push(size);
+          }
+        }
+        break;
+      }
 
-    leftover.push(token);
+      case 'r': {
+        const tier = resolveTier(group.values[0] ?? value);
+        if (!tier) break;
+
+        if (op === ':' || op === '=') {
+          tiers.add(tier);
+          detected.tiers.push(tier);
+        } else if (op === '<=' || op === '<') {
+          tierMax = tier;
+          detected.tiers.push(`<=${tier}`);
+        } else if (op === '>=' || op === '>') {
+          tierMin = tier;
+          detected.tiers.push(`>=${tier}`);
+        }
+        break;
+      }
+
+      case 'o': {
+        tooltipGroups.push(group);
+        break;
+      }
+
+      default:
+        leftover.push(token);
+    }
+  }
+
+  const unresolved: string[] = [];
+  for (const token of leftover) {
+    if (!resolvePlainToken(token)) unresolved.push(token);
   }
 
   const detectedAnything =
@@ -166,21 +250,33 @@ export const parseSmartQuery = (filter: BazaarFilter, facets: Facets): SmartQuer
     detected.heroes.length ||
     detected.sizes.length ||
     detected.tiers.length ||
-    detected.tags.length;
+    detected.tags.length ||
+    nameGroups.length > filter.nameGroups.length ||
+    tooltipGroups.length > filter.tooltipGroups.length ||
+    tagGroups.length > filter.tagGroups.length ||
+    nameExact !== filter.nameExact ||
+    tierMin !== filter.tierMin ||
+    tierMax !== filter.tierMax;
 
-  if (!detectedAnything) {
-    return { filter, detected: empty };
+  if (!detectedAnything && unresolved.join(' ') === raw) {
+    return { filter, detected: emptyDetected() };
   }
 
   return {
     filter: {
       ...filter,
-      text: leftover.join(' '),
+      text: unresolved.join(' '),
       kinds,
       heroes,
       sizes,
       tiers,
       tags,
+      tagGroups,
+      nameGroups,
+      tooltipGroups,
+      nameExact,
+      tierMin,
+      tierMax,
     },
     detected,
   };

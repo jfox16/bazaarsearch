@@ -1,17 +1,27 @@
 import type { StateCreator } from 'zustand';
 
-import type { BazaarFilter, Kind, ToggleFilterKey } from 'types/bazaar';
+import type { BazaarFilter, Kind, Tier, ToggleFilterKey } from 'types/bazaar';
 
 import type { BazaarState } from '../types';
 
+const DEFAULT_KIND: Kind = 'item';
+
+export const isDefaultKinds = (kinds: Set<Kind>) => kinds.size === 1 && kinds.has(DEFAULT_KIND);
+
 const createDefaultFilter = (): BazaarFilter => ({
   text: '',
-  kinds: new Set<Kind>(),
+  kinds: new Set<Kind>([DEFAULT_KIND]),
   heroes: new Set<string>(),
   sizes: new Set<string>(),
-  tiers: new Set<string>(),
+  tiers: new Set<Tier>(),
   tags: new Set<string>(),
   tagMatchAll: false,
+  nameGroups: [],
+  nameExact: null,
+  tooltipGroups: [],
+  tagGroups: [],
+  tierMin: null,
+  tierMax: null,
 });
 
 const toggleInSet = <T,>(set: Set<T>, value: T): Set<T> => {
@@ -37,7 +47,14 @@ export const createFilterSlice: StateCreator<BazaarState, [], [], FilterSlice> =
   setText: (text) => set((s) => ({ filter: { ...s.filter, text } })),
 
   toggleFilter: (key, value) =>
-    set((s) => ({ filter: { ...s.filter, [key]: toggleInSet(s.filter[key], value) } })),
+    set((s) => {
+      if (key === 'kinds') {
+        const kind = value as Kind;
+        if (s.filter.kinds.size === 1 && s.filter.kinds.has(kind)) return s;
+        return { filter: { ...s.filter, kinds: new Set([kind]) } };
+      }
+      return { filter: { ...s.filter, [key]: toggleInSet(s.filter[key], value) } };
+    }),
 
   setTagMatchAll: (value) => set((s) => ({ filter: { ...s.filter, tagMatchAll: value } })),
 
@@ -47,7 +64,7 @@ export const createFilterSlice: StateCreator<BazaarState, [], [], FilterSlice> =
     const f = get().filter;
     return (
       f.text.trim() !== '' ||
-      f.kinds.size > 0 ||
+      !isDefaultKinds(f.kinds) ||
       f.heroes.size > 0 ||
       f.sizes.size > 0 ||
       f.tiers.size > 0 ||

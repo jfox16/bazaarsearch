@@ -72,6 +72,24 @@
   // covers the square, cropping the overflow toward the center.
   &.is-cover {
     aspect-ratio: 1 / 1;
+    background: transparent;
+
+    .CardImage-placeholder {
+      background: transparent;
+    }
+
+    // Inset vignette along the clipped art edges.
+    &:not(.is-circle)::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      box-shadow:
+        inset 0 2px 8px rgba(0, 0, 0, 0.45),
+        inset 0 0 1px rgba(0, 0, 0, 0.3);
+      pointer-events: none;
+      z-index: 1;
+    }
   }
   // Small art is 1:2 (tall): fill width, overflow top/bottom.
   &.is-cover.is-small .CardImage-img {
@@ -118,6 +136,12 @@
     object-fit: cover;
   }
 
+  &.is-cover.is-circle .CardImage-img {
+    box-shadow:
+      inset 0 2px 6px rgba(0, 0, 0, 0.5),
+      inset 0 -1px 3px rgba(0, 0, 0, 0.25);
+  }
+
   &-fallback {
     position: absolute;
     inset: 0;
@@ -125,7 +149,7 @@
     align-items: center;
     justify-content: center;
     color: var(--color-text-muted);
-    font-size: 1.5rem;
+    font-size: var(--font-size-3xl);
   }
 }
 

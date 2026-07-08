@@ -11,7 +11,10 @@
   }
 
   &-label {
-    font-size: 0.7rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -22,6 +25,10 @@
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
+
+    .Tooltip {
+      display: inline-flex;
+    }
 
     &.is-scroll {
       max-height: 168px;
@@ -37,7 +44,7 @@
   border-radius: 999px;
   background: var(--color-bg-elevated);
   color: var(--color-text-dim);
-  font-size: 0.78rem;
+  font-size: var(--font-size-sm);
   white-space: nowrap;
   transition:
     border-color 0.12s ease,
