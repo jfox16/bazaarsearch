@@ -2,13 +2,10 @@ import type { StateCreator } from 'zustand';
 
 import { applyUrlFilterState, parseUrlSearchParams } from 'functions/filterUrlParams';
 import type { UrlFilterState } from 'functions/filterUrlParams';
+import { DEFAULT_KIND, isDefaultKinds } from 'functions/filterDefaults';
 import type { BazaarFilter, Kind, Size, Tier, ToggleFilterKey } from 'types/bazaar';
 
 import type { BazaarState } from '../types';
-
-const DEFAULT_KIND: Kind = 'item';
-
-export const isDefaultKinds = (kinds: Set<Kind>) => kinds.size === 1 && kinds.has(DEFAULT_KIND);
 
 const createDefaultFilter = (): BazaarFilter => ({
   text: '',

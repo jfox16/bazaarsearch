@@ -1,3 +1,5 @@
+/// <reference types="vitest/config" />
+
 import { resolve } from 'node:path';
 
 import { defineConfig } from 'vite';
@@ -23,5 +25,10 @@ export default defineConfig({
         loadPaths: [resolve(import.meta.dirname, 'src')],
       },
     },
+  },
+  test: {
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.ts',
+    include: ['src/**/*.{test,spec}.{ts,tsx}'],
   },
 });

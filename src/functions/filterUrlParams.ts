@@ -1,4 +1,4 @@
-import { isDefaultKinds } from 'store/slices/filterSlice';
+import { isDefaultKinds } from 'functions/filterDefaults';
 import type { BazaarFilter, Kind, Size, SortDirection, SortField, SortOptions, Tier } from 'types/bazaar';
 
 const DEFAULT_SORT: SortOptions = { field: 'rarity', direction: 'asc' };
