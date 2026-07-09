@@ -16,9 +16,9 @@ interface CardImageProps {
   /** Skills render as a smaller centered circle rather than a sized rectangle. */
   circle?: boolean;
   /**
-   * Tile view: square frame that zooms the (un-squished) art until it covers
-   * the square, cropping the overflow. When false (detail view) the full art is
-   * shown letterboxed at its true aspect ratio.
+   * Tile view: per-size frames in the card grid (see CardImage.scss `.is-cover`).
+   * Small = half-width portrait slot; medium = square; large = same height as
+   * medium but bleeds to tile edges with horizontal crop.
    */
   cover?: boolean;
   /**

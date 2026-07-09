@@ -68,8 +68,28 @@
     width: 100%;
   }
 
-  // Tile view (cover): square frame; the un-squished art is zoomed until it
-  // covers the square, cropping the overflow toward the center.
+  // ---------------------------------------------------------------------------
+  // Tile view (cover) — CardTile list/grid
+  //
+  // CDN images are always square, but in-game art has different aspects:
+  //   Small  → portrait 1:2 (1 board slot wide)
+  //   Medium → square 1:1 (2 slots)
+  //   Large  → landscape 3:2 (3 slots)
+  // The square asset compresses art horizontally; we un-squish with
+  // object-fit: fill into a correctly-proportioned <img> box, then crop.
+  //
+  // All three sizes share the same row height (= tile content width):
+  //   Medium → 1:1 square frame
+  //   Small  → half-width 1:2 portrait slot, centered
+  //   Large  → height pegged to the medium square via 100cqw (see CardTile
+  //             container-type), width bleeds past --tile-pad to tile edges;
+  //             3:2 art fills the frame height and is cropped left/right
+  //
+  // Small/medium un-squish: size the <img> to the detail-view fractions
+  // (⅓×⅔, ⅔×⅔ of a 3:2 box — height % is lower for small because its frame
+  // is portrait), then scale() up to cover the frame. Do not widen the <img>
+  // directly (e.g. width: 300%) — that stretches into the wrong aspect.
+  // ---------------------------------------------------------------------------
   &.is-cover {
     aspect-ratio: 1 / 1;
     background: transparent;
@@ -91,36 +111,42 @@
       z-index: 1;
     }
   }
-  // Small items occupy half the medium square (1 slot vs 2) at portrait 1:2.
+  // Small items use a half-width portrait slot (1 board slot vs 2) at the same
+  // row height as the medium/large square frame.
   &.is-cover.is-small {
     width: 50%;
     margin-inline: auto;
     aspect-ratio: 1 / 2;
   }
+  // Un-squish using the same fractions as detail view (relative to a 3:2 box),
+  // then scale up to cover the frame (cropped toward the center).
   &.is-cover.is-small .CardImage-img {
-    width: 100%;
-    height: 100%;
+    // Detail fractions in a 3:2 box, then scale to cover the 1:2 portrait slot.
+    width: 33.3333%;
+    height: 33.3333%;
+    transform: translate(-50%, -50%) scale(3);
   }
-  // Medium art is 1:1: exact fit.
   &.is-cover.is-medium .CardImage-img {
-    width: 100%;
-    height: 100%;
+    width: 66.6667%;
+    height: 66.6667%;
+    transform: translate(-50%, -50%) scale(1.5);
   }
-  // Large art is 3:2 (3 board slots wide at shared row height): bleed to the
-  // card edges at the correct aspect ratio so the square CDN art is not squished.
+  // Large: same row height as the medium square, but bleeds past tile padding;
+  // 3:2 art is height-filled and cropped on the sides.
   &.is-cover.is-large {
     width: calc(100% + var(--tile-pad, 8px) * 2);
     margin-inline: calc(var(--tile-pad, 8px) * -1);
-    aspect-ratio: 3 / 2;
-    height: auto;
+    height: 100cqw;
+    aspect-ratio: auto;
     border-radius: 0;
   }
   &.is-cover.is-large .CardImage-img {
-    top: 0;
-    left: 0;
-    transform: none;
-    width: 100%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     height: 100%;
+    width: auto;
+    aspect-ratio: 3 / 2;
   }
 
   // Standalone view: the box is sized by its parent (per item size) and the

@@ -1,6 +1,9 @@
 .CardTile {
   --tile-pad: 8px;
 
+  // Enables height: 100cqw on large CardImage so it matches the medium square.
+  container-type: inline-size;
+
   display: flex;
   flex-direction: column;
   gap: 6px;
