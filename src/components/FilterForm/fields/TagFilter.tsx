@@ -1,5 +1,5 @@
 import { ChipToggleGroup } from 'components/FilterForm/ChipToggleGroup';
-import { TAG_HINT, tagChipHint } from 'data/filterHints';
+import { TAG_HINT } from 'data/filterHints';
 import { useBazaarStore } from 'store/useBazaarStore';
 
 export const TagFilter = () => {
@@ -11,10 +11,9 @@ export const TagFilter = () => {
     <ChipToggleGroup
       label="Tags"
       hint={TAG_HINT}
-      options={tags.map((t) => ({ value: t, label: t, hint: tagChipHint(t) }))}
+      options={tags.map((t) => ({ value: t, label: t }))}
       selected={selected}
       onToggle={(value) => toggleFilter('tags', value)}
-      scroll
     />
   );
 };

@@ -91,19 +91,35 @@
       z-index: 1;
     }
   }
-  // Small art is 1:2 (tall): fill width, overflow top/bottom.
+  // Small items occupy half the medium square (1 slot vs 2) at portrait 1:2.
+  &.is-cover.is-small {
+    width: 50%;
+    margin-inline: auto;
+    aspect-ratio: 1 / 2;
+  }
   &.is-cover.is-small .CardImage-img {
     width: 100%;
-    height: 200%;
+    height: 100%;
   }
   // Medium art is 1:1: exact fit.
   &.is-cover.is-medium .CardImage-img {
     width: 100%;
     height: 100%;
   }
-  // Large art is 3:2 (wide): fill height, overflow left/right.
+  // Large art is 3:2 (3 board slots wide at shared row height): bleed to the
+  // card edges at the correct aspect ratio so the square CDN art is not squished.
+  &.is-cover.is-large {
+    width: calc(100% + var(--tile-pad, 8px) * 2);
+    margin-inline: calc(var(--tile-pad, 8px) * -1);
+    aspect-ratio: 3 / 2;
+    height: auto;
+    border-radius: 0;
+  }
   &.is-cover.is-large .CardImage-img {
-    width: 150%;
+    top: 0;
+    left: 0;
+    transform: none;
+    width: 100%;
     height: 100%;
   }
 

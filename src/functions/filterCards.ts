@@ -1,4 +1,9 @@
-import type { BazaarEntry, BazaarFilter, MatchGroup, Tier } from 'types/bazaar';
+import type { BazaarEntry, BazaarFilter, MatchGroup, SortOptions, Tier } from 'types/bazaar';
+
+import { CARD_DESCRIPTIONS } from 'data/cardDescriptions';
+import { NEUTRAL_HERO_POOL } from 'functions/formatHeroLabel';
+
+import { sortEntries } from './sortEntries';
 
 const TIER_ORDER: Record<Tier, number> = {
   Bronze: 0,
@@ -20,7 +25,9 @@ const matchesTagGroup = (entryTags: Set<string>, group: MatchGroup): boolean => 
 };
 
 const matchesText = (entry: BazaarEntry, query: string): boolean => {
-  const haystack = `${entry.name} ${entry.unifiedTooltips.join(' ')}`.toLowerCase();
+  const description = CARD_DESCRIPTIONS[entry.name] ?? '';
+  const haystack =
+    `${entry.name} ${description} ${entry.unifiedTooltips.join(' ')}`.toLowerCase();
   return haystack.includes(query.toLowerCase());
 };
 
@@ -43,7 +50,21 @@ const matchesSetFilter = (entryValues: Set<string>, selected: Set<string>): bool
   return [...selected].some((value) => entryValues.has(value));
 };
 
-export const filterCards = (entries: BazaarEntry[], filter: BazaarFilter): BazaarEntry[] => {
+const matchesHeroFilter = (
+  entryHeroes: string[],
+  selected: Set<string>,
+  showNeutral: boolean,
+): boolean => {
+  if (!selected.size) return true;
+  if (entryHeroes.some((hero) => selected.has(hero))) return true;
+  return showNeutral && entryHeroes.includes(NEUTRAL_HERO_POOL);
+};
+
+export const filterCards = (
+  entries: BazaarEntry[],
+  filter: BazaarFilter,
+  sort: SortOptions,
+): BazaarEntry[] => {
   const {
     text,
     kinds,
@@ -58,12 +79,13 @@ export const filterCards = (entries: BazaarEntry[], filter: BazaarFilter): Bazaa
     tagGroups,
     tierMin,
     tierMax,
+    showNeutral,
   } = filter;
   const query = text.trim();
 
   const result = entries.filter((entry) => {
     if (kinds.size && !kinds.has(entry.kind)) return false;
-    if (heroes.size && !entry.heroes.some((h) => heroes.has(h))) return false;
+    if (!matchesHeroFilter(entry.heroes, heroes, showNeutral)) return false;
     if (sizes.size && (!entry.size || !sizes.has(entry.size))) return false;
     if (!matchesTier(entry.startingTier, tiers, tierMin, tierMax)) return false;
 
@@ -93,10 +115,5 @@ export const filterCards = (entries: BazaarEntry[], filter: BazaarFilter): Bazaa
     return true;
   });
 
-  return result.sort((a, b) => {
-    const ta = a.startingTier ? TIER_ORDER[a.startingTier] : 99;
-    const tb = b.startingTier ? TIER_ORDER[b.startingTier] : 99;
-    if (ta !== tb) return ta - tb;
-    return a.name.localeCompare(b.name);
-  });
+  return sortEntries(result, sort);
 };

@@ -29,18 +29,31 @@
     background: var(--art-tier-color, var(--color-border));
     filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.55));
     transform-style: preserve-3d;
+    touch-action: none;
     transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateY(0) scale(1);
     transition:
       transform 0.35s ease-out,
-      filter 0.25s ease-out;
+      filter 0.28s ease-out;
     will-change: transform;
 
     &.is-hovering {
-      transition:
-        transform 0.08s ease-out,
-        filter 0.25s ease-out;
       filter: drop-shadow(0 22px 36px rgba(0, 0, 0, 0.68));
       transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateY(-10px) scale(1.05);
+      transition:
+        transform 0.3s ease-out,
+        filter 0.28s ease-out;
+    }
+
+    &.is-hovering.is-dragging {
+      transition:
+        transform 0.08s ease-out,
+        filter 0.28s ease-out;
+    }
+
+    &.is-hovering:not(.is-dragging) {
+      transition:
+        transform 0.38s ease-out,
+        filter 0.28s ease-out;
     }
 
     .CardImage {
@@ -225,6 +238,40 @@
     overflow-x: hidden;
   }
 
+  &-facts {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    column-gap: 10px;
+    row-gap: 4px;
+    align-items: center;
+    font-size: var(--font-size-2xs);
+  }
+
+  &-factsLabel {
+    font-size: inherit;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+  }
+
+  &-factsValue {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  &-tagRow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    font-size: var(--font-size-2xs);
+  }
+
   &-badge {
     display: inline-flex;
     align-items: center;
@@ -267,10 +314,14 @@
       }
     }
 
-    &.is-hero,
-    &.is-type {
+    &.is-hero {
       color: var(--color-accent);
       border-color: var(--color-accent);
+    }
+
+    &.is-type {
+      color: var(--color-text-dim);
+      border-color: color-mix(in srgb, var(--color-text-dim) 45%, var(--color-border));
     }
 
     &[data-tier='Bronze'] {
@@ -347,13 +398,12 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+  }
 
-    &--inline {
-      flex-direction: row;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
+  &-description {
+    padding: 10px;
+    border-radius: var(--radius);
+    background: var(--color-bg-elevated);
   }
 
   &-sectionTitle {
@@ -523,6 +573,48 @@
     gap: 3px;
     font-size: var(--font-size-md);
     color: var(--color-text);
+  }
+
+  &-goldAmount {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  &-goldIcon {
+    color: var(--tier-gold);
+    flex-shrink: 0;
+  }
+
+  &-goldValues {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0;
+    font-size: inherit;
+    font-weight: 600;
+  }
+
+  &-tierVal {
+    &[data-tier='Bronze'] {
+      color: var(--tier-bronze);
+    }
+    &[data-tier='Silver'] {
+      color: var(--tier-silver);
+    }
+    &[data-tier='Gold'] {
+      color: var(--tier-gold);
+    }
+    &[data-tier='Diamond'] {
+      color: var(--tier-diamond);
+    }
+    &[data-tier='Legendary'] {
+      color: var(--tier-legendary);
+    }
+  }
+
+  &-tierSep {
+    color: var(--color-text-muted);
+    font-weight: 500;
   }
 
   &-muted {

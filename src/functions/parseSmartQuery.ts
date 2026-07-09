@@ -25,8 +25,11 @@ import {
  * - o  — tooltip text (`o:burn|poison`)
  *
  * Plain words without a filter prefix are auto-resolved as hero, tag, size, tier,
- * or type when recognized; any unrecognized words search names and tooltips.
+ * or type when recognized; any other words are combined and matched against
+ * names and descriptions. Use quotes to skip alias detection — e.g. `jules "burn"`.
  */
+
+import { tokenizeSearchQuery, type SearchQueryToken } from './tokenizeSearchQuery';
 
 const FILTER_TOKEN_RE = /^(-)?([a-z]{1,2})(<=|>=|:|<|>|=)(.+)$/i;
 
@@ -203,10 +206,15 @@ export const parseSmartQuery = (filter: BazaarFilter, facets: Facets): SmartQuer
     return false;
   };
 
-  const leftover: string[] = [];
+  const leftover: SearchQueryToken[] = [];
 
-  for (const token of raw.split(/\s+/).filter(Boolean)) {
-    const parsed = parseFilterToken(token);
+  for (const token of tokenizeSearchQuery(raw)) {
+    if (token.quoted) {
+      leftover.push(token);
+      continue;
+    }
+
+    const parsed = parseFilterToken(token.value);
     if (!parsed || parsed.negate) {
       leftover.push(token);
       continue;
@@ -269,10 +277,17 @@ export const parseSmartQuery = (filter: BazaarFilter, facets: Facets): SmartQuer
     }
   }
 
-  const unresolved: string[] = [];
+  const textParts: string[] = [];
   for (const token of leftover) {
-    if (!resolvePlainToken(token)) unresolved.push(token);
+    if (token.quoted) {
+      if (token.value) textParts.push(token.value);
+      continue;
+    }
+    if (!resolvePlainToken(token.value)) textParts.push(token.value);
   }
+
+  const searchText = textParts.join(' ');
+  const hasQuotedTokens = leftover.some((token) => token.quoted);
 
   const detectedAnything =
     detected.kinds.length ||
@@ -288,14 +303,14 @@ export const parseSmartQuery = (filter: BazaarFilter, facets: Facets): SmartQuer
     tierMin !== filter.tierMin ||
     tierMax !== filter.tierMax;
 
-  if (!detectedAnything && unresolved.join(' ') === raw) {
+  if (!detectedAnything && !hasQuotedTokens && searchText === raw) {
     return { filter, detected: emptyDetected() };
   }
 
   return {
     filter: {
       ...filter,
-      text: unresolved.join(' '),
+      text: searchText,
       kinds,
       heroes,
       sizes,

@@ -1,0 +1,15 @@
+.HeroFilter-neutral {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-dim);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+
+  input {
+    margin: 0;
+    accent-color: var(--color-accent);
+  }
+}

@@ -24,10 +24,11 @@ export const useFilteredEntries = (): BazaarEntry[] => {
   const entries = useBazaarStore((s) => s.entries);
   const filter = useBazaarStore((s) => s.filter);
   const facets = useBazaarStore((s) => s.facets);
+  const sort = useBazaarStore((s) => s.sort);
   return useMemo(() => {
     const { filter: effectiveFilter } = parseSmartQuery(filter, facets);
-    return filterCards(entries, effectiveFilter);
-  }, [entries, filter, facets]);
+    return filterCards(entries, effectiveFilter, sort);
+  }, [entries, filter, facets, sort]);
 };
 
 /** Facets auto-detected from the current text query (for UI feedback). */

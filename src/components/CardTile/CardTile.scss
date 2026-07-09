@@ -1,8 +1,10 @@
 .CardTile {
+  --tile-pad: 8px;
+
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 8px;
+  padding: var(--tile-pad);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   background: var(--color-surface);
@@ -33,7 +35,7 @@
   }
 
   &:hover {
-    border-color: var(--color-accent);
+    border-color: var(--tile-tier-color, var(--color-accent));
     background: var(--color-surface-hover);
     transform: translateY(-2px);
   }

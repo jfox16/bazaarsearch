@@ -6,6 +6,7 @@ import { Header } from 'components/Header/Header';
 import { MobileFilterDrawer } from 'components/MobileFilterDrawer/MobileFilterDrawer';
 import { Modal } from 'components/Modal/Modal';
 import { Sidebar } from 'components/Sidebar/Sidebar';
+import { useFilterUrlSync } from 'hooks/useFilterUrlSync';
 import { useIsMobile } from 'hooks/useIsMobile';
 import { useBazaarStore, useSelectedEntry } from 'store/useBazaarStore';
 
@@ -16,6 +17,8 @@ export const Search = () => {
   const load = useBazaarStore((s) => s.load);
   const select = useBazaarStore((s) => s.select);
   const selected = useSelectedEntry();
+
+  useFilterUrlSync();
 
   useEffect(() => {
     load();

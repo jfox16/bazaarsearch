@@ -6,19 +6,16 @@ import { SEARCH_HINT } from 'data/filterHints';
 
 import { useDebouncedValue } from 'hooks/useDebouncedValue';
 import { formatHeroLabel } from 'functions/formatHeroLabel';
-import {
-  formatItemNameFilter,
-  getItemNameSuggestions,
-  getNameSearchToken,
-} from 'functions/getItemNameSuggestions';
+import { getItemNameSuggestionsAtCursor } from 'functions/getItemNameSuggestions';
 import { useBazaarStore, useDetectedFilters } from 'store/useBazaarStore';
 
 import './TextFilter.scss';
 
 export const TextFilter = () => {
   const setText = useBazaarStore((s) => s.setText);
+  const select = useBazaarStore((s) => s.select);
   const entries = useBazaarStore((s) => s.entries);
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState(() => useBazaarStore.getState().filter.text);
   const debounced = useDebouncedValue(value, 150);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
@@ -43,12 +40,9 @@ export const TextFilter = () => {
     [detected],
   );
 
-  const searchToken = useMemo(() => getNameSearchToken(value, cursor), [value, cursor]);
-
   const suggestions = useMemo(
-    () =>
-      searchToken ? getItemNameSuggestions(entries, searchToken.query) : [],
-    [entries, searchToken],
+    () => getItemNameSuggestionsAtCursor(entries, value, cursor),
+    [entries, value, cursor],
   );
 
   const showSuggestions = open && suggestions.length > 0;
@@ -69,17 +63,19 @@ export const TextFilter = () => {
   };
 
   const applySuggestion = (name: string) => {
-    const nextValue = formatItemNameFilter(name);
-
-    setValue(nextValue);
+    setValue(name);
+    setText(name);
     setOpen(false);
     setActiveIndex(-1);
+
+    const entry = entries.find((e) => e.kind === 'item' && e.name === name);
+    if (entry) select(entry.id);
 
     requestAnimationFrame(() => {
       const input = inputRef.current;
       if (!input) return;
       input.focus();
-      const pos = nextValue.length;
+      const pos = name.length;
       input.setSelectionRange(pos, pos);
       setCursor(pos);
     });

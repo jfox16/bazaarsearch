@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { CardTile } from 'components/CardTile/CardTile';
+import { SortBar } from 'components/SortBar/SortBar';
 import { useBazaarStore, useFilteredEntries } from 'store/useBazaarStore';
 
 import './CardGrid.scss';
@@ -52,6 +53,7 @@ export const CardGrid = () => {
 
   return (
     <>
+      <SortBar />
       <div className="CardGrid">
         {visible.map((entry) => (
           <CardTile key={entry.id} entry={entry} onClick={(e) => select(e.id)} />

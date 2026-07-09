@@ -4,6 +4,8 @@
   left: 0;
   bottom: 0;
   width: var(--sidebar-width);
+  display: flex;
+  flex-direction: column;
   overflow-x: hidden;
   overflow-y: auto;
   background: var(--color-bg-elevated);

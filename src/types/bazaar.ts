@@ -2,6 +2,14 @@ export type Kind = 'item' | 'skill';
 export type Size = 'Small' | 'Medium' | 'Large';
 export type Tier = 'Bronze' | 'Silver' | 'Gold' | 'Diamond' | 'Legendary';
 
+export type SortField = 'rarity' | 'name' | 'size' | 'kind' | 'hero';
+export type SortDirection = 'asc' | 'desc';
+
+export interface SortOptions {
+  field: SortField;
+  direction: SortDirection;
+}
+
 /** A single item or skill in the trimmed, bundled dataset. */
 export interface BazaarEntry {
   id: string;
@@ -108,4 +116,6 @@ export interface BazaarFilter {
   tierMin: Tier | null;
   /** Inline `r<=` maximum starting tier. */
   tierMax: Tier | null;
+  /** When hero filters are active, also include neutral (Common) items. */
+  showNeutral: boolean;
 }

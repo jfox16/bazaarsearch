@@ -5,26 +5,24 @@ import { HintTrigger, Tooltip } from 'components/Tooltip/Tooltip';
 export interface ChipOption {
   value: string;
   label: string;
-  hint?: React.ReactNode;
 }
 
 interface ChipToggleGroupProps {
   label: string;
   hint?: React.ReactNode;
+  headerExtra?: React.ReactNode;
   options: ChipOption[];
   selected: Set<string>;
   onToggle: (value: string) => void;
-  /** Constrain height and scroll when there are many options (e.g. tags). */
-  scroll?: boolean;
 }
 
 export const ChipToggleGroup = ({
   label,
   hint,
+  headerExtra,
   options,
   selected,
   onToggle,
-  scroll,
 }: ChipToggleGroupProps) => {
   if (options.length === 0) return null;
 
@@ -39,12 +37,14 @@ export const ChipToggleGroup = ({
             </Tooltip>
           )}
         </span>
+        {headerExtra}
       </div>
-      <div className={`ChipToggleGroup-chips${scroll ? ' is-scroll' : ''}`}>
+      <div className="ChipToggleGroup-chips">
         {options.map((option) => {
           const active = selected.has(option.value);
-          const chip = (
+          return (
             <button
+              key={option.value}
               type="button"
               className="Chip"
               data-active={active}
@@ -53,16 +53,6 @@ export const ChipToggleGroup = ({
             >
               {option.label}
             </button>
-          );
-
-          if (!option.hint) {
-            return <span key={option.value}>{chip}</span>;
-          }
-
-          return (
-            <Tooltip key={option.value} content={option.hint}>
-              {chip}
-            </Tooltip>
           );
         })}
       </div>

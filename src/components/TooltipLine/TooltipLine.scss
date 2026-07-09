@@ -6,4 +6,47 @@
     vertical-align: baseline;
     white-space: nowrap;
   }
+
+  &-keyword {
+    font-weight: inherit;
+    vertical-align: baseline;
+  }
+
+  &-tierVal {
+    font-weight: 600;
+
+    &[data-tier='Bronze'] {
+      color: var(--tier-bronze);
+    }
+    &[data-tier='Silver'] {
+      color: var(--tier-silver);
+    }
+    &[data-tier='Gold'] {
+      color: var(--tier-gold);
+    }
+    &[data-tier='Diamond'] {
+      color: var(--tier-diamond);
+    }
+    &[data-tier='Legendary'] {
+      color: var(--tier-legendary);
+    }
+  }
+
+  &-tierSep {
+    color: var(--color-text-muted);
+    font-weight: 500;
+  }
+
+  &-mechanic {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: inherit;
+    font-weight: 600;
+    vertical-align: baseline;
+  }
+
+  &-mechanicSuffix {
+    font-weight: inherit;
+  }
 }

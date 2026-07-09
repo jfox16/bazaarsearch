@@ -36,8 +36,8 @@ export const getSellPrice = (entry: BazaarEntry, qualityTier: Tier): number | nu
 
   if (qualityIndex < startIndex) return null;
 
-  const override = SELL_PRICE_OVERRIDES[entry.id]?.[qualityTier];
-  if (override !== undefined) return override;
+  const itemOverride = SELL_PRICE_OVERRIDES[entry.id];
+  if (itemOverride !== undefined) return itemOverride[qualityTier] ?? null;
 
   if (startIndex >= 2) return 2 ** qualityIndex;
 

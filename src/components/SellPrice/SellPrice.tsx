@@ -1,4 +1,4 @@
-import { Coins } from 'lucide-react';
+import { GoldCoinIcon } from 'components/GoldCoinIcon/GoldCoinIcon';
 
 import './SellPrice.scss';
 
@@ -13,7 +13,7 @@ export const SellPrice = ({ value, size = 13, className }: SellPriceProps) => {
 
   return (
     <span className={classNames}>
-      <Coins size={size} aria-hidden />
+      <GoldCoinIcon size={size} />
       <span>{value}</span>
     </span>
   );

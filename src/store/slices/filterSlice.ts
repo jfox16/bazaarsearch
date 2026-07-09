@@ -1,5 +1,7 @@
 import type { StateCreator } from 'zustand';
 
+import { applyUrlFilterState, parseUrlSearchParams } from 'functions/filterUrlParams';
+import type { UrlFilterState } from 'functions/filterUrlParams';
 import type { BazaarFilter, Kind, Size, Tier, ToggleFilterKey } from 'types/bazaar';
 
 import type { BazaarState } from '../types';
@@ -22,6 +24,7 @@ const createDefaultFilter = (): BazaarFilter => ({
   tagGroups: [],
   tierMin: null,
   tierMax: null,
+  showNeutral: true,
 });
 
 const toggleInSet = <T,>(set: Set<T>, value: T): Set<T> => {
@@ -44,11 +47,18 @@ export interface FilterSlice {
   applySizeFilter: (size: Size) => void;
   applyTierFilter: (tier: Tier) => void;
   clearFilters: () => void;
+  hydrateFilter: (fromUrl: UrlFilterState) => void;
+  setShowNeutral: (showNeutral: boolean) => void;
   isFilterActive: () => boolean;
 }
 
+const initialUrlState =
+  typeof window !== 'undefined' ? parseUrlSearchParams(window.location.search) : null;
+
 export const createFilterSlice: StateCreator<BazaarState, [], [], FilterSlice> = (set, get) => ({
-  filter: createDefaultFilter(),
+  filter: initialUrlState
+    ? applyUrlFilterState(createDefaultFilter(), initialUrlState.filter)
+    : createDefaultFilter(),
   textFilterKey: 0,
 
   setText: (text) => set((s) => ({ filter: { ...s.filter, text } })),
@@ -91,6 +101,7 @@ export const createFilterSlice: StateCreator<BazaarState, [], [], FilterSlice> =
         ...createDefaultFilter(),
         kinds: new Set<Kind>(['item', 'skill']),
         heroes: new Set([hero]),
+        showNeutral: s.filter.showNeutral,
       },
       textFilterKey: s.textFilterKey + 1,
     })),
@@ -129,6 +140,14 @@ export const createFilterSlice: StateCreator<BazaarState, [], [], FilterSlice> =
       filter: createDefaultFilter(),
       textFilterKey: s.textFilterKey + 1,
     })),
+
+  hydrateFilter: (fromUrl) =>
+    set((s) => ({
+      filter: applyUrlFilterState(createDefaultFilter(), fromUrl),
+      textFilterKey: s.textFilterKey + 1,
+    })),
+
+  setShowNeutral: (showNeutral) => set((s) => ({ filter: { ...s.filter, showNeutral } })),
 
   isFilterActive: () => {
     const f = get().filter;

@@ -1,0 +1,14 @@
+.GoldCoinIcon {
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: -0.15em;
+  color: var(--tier-gold);
+
+  circle {
+    fill: currentColor;
+  }
+
+  &-highlight {
+    fill: color-mix(in srgb, white 22%, currentColor);
+  }
+}

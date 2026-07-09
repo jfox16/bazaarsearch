@@ -1,10 +1,10 @@
 import { ChipToggleGroup } from 'components/FilterForm/ChipToggleGroup';
-import { KIND_HINT, kindChipHint } from 'data/filterHints';
+import { KIND_HINT } from 'data/filterHints';
 import { useBazaarStore } from 'store/useBazaarStore';
 
 const OPTIONS = [
-  { value: 'item', label: 'Items', hint: kindChipHint('item') },
-  { value: 'skill', label: 'Skills', hint: kindChipHint('skill') },
+  { value: 'item', label: 'Items' },
+  { value: 'skill', label: 'Skills' },
 ];
 
 export const KindFilter = () => {

@@ -1,5 +1,5 @@
 import { ChipToggleGroup } from 'components/FilterForm/ChipToggleGroup';
-import { TIER_HINT, tierChipHint } from 'data/filterHints';
+import { TIER_HINT } from 'data/filterHints';
 import { useBazaarStore } from 'store/useBazaarStore';
 
 export const TierFilter = () => {
@@ -11,7 +11,7 @@ export const TierFilter = () => {
     <ChipToggleGroup
       label="Starting Tier"
       hint={TIER_HINT}
-      options={tiers.map((t) => ({ value: t, label: t, hint: tierChipHint(t) }))}
+      options={tiers.map((t) => ({ value: t, label: t }))}
       selected={selected}
       onToggle={(value) => toggleFilter('tiers', value)}
     />

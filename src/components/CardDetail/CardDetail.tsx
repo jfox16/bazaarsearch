@@ -1,10 +1,21 @@
-import { useEffect, useRef, useState, type CSSProperties, type MouseEvent } from 'react';
+import {
+  Fragment,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MouseEvent,
+  type TouchEvent,
+} from 'react';
 import { X } from 'lucide-react';
+import { GoldCoinIcon } from 'components/GoldCoinIcon/GoldCoinIcon';
 
 import { CardImage } from 'components/CardImage/CardImage';
-import { SellPrice } from 'components/SellPrice/SellPrice';
+import { DetailPill } from 'components/DetailPill/DetailPill';
 import { StatIcon } from 'components/StatIcon/StatIcon';
 import { TooltipLine } from 'components/TooltipLine/TooltipLine';
+
+import { getPillInfo, type PillKind } from 'data/pillDescriptions';
 
 import { loadEnchantments, loadQuests } from 'data/loadDataset';
 
@@ -14,16 +25,18 @@ import {
   getEntryMechanicTags,
   getEntryTypes,
 } from 'functions/getEntryDisplayTags';
+import { getActiveTiers } from 'functions/getActiveTiers';
 import { getSellPrice } from 'functions/getSellPrice';
-import { formatHeroLabel } from 'functions/formatHeroLabel';
+import { getEntryHeroPills } from 'functions/formatHeroLabel';
+import { formatStartingTierLabel } from 'functions/formatStartingTierLabel';
 
+import { useDeviceTilt } from 'hooks/useDeviceTilt';
+import { useIsMobile } from 'hooks/useIsMobile';
 import { useBazaarStore } from 'store/useBazaarStore';
 
 import type { BazaarEntry, Enchantment, Kind, Quest, Size, Tier } from 'types/bazaar';
 
 import './CardDetail.scss';
-
-const TIER_ORDER: Tier[] = ['Bronze', 'Silver', 'Gold', 'Diamond', 'Legendary'];
 
 const artSizeClass = (size?: Size | null): string => {
   switch (size) {
@@ -42,6 +55,7 @@ interface CardDetailProps {
 }
 
 const TILT_MAX = 18;
+const TILT_RELEASE_MS = 380;
 
 interface ArtTilt {
   rotateX: number;
@@ -79,13 +93,24 @@ export const CardDetail = ({ entry, onClose }: CardDetailProps) => {
   const applyKindFilter = useBazaarStore((s) => s.applyKindFilter);
   const applySizeFilter = useBazaarStore((s) => s.applySizeFilter);
   const applyTierFilter = useBazaarStore((s) => s.applyTierFilter);
+  const isMobile = useIsMobile();
   const artRef = useRef<HTMLDivElement>(null);
+  const releaseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [artTilt, setArtTilt] = useState<ArtTilt>({ rotateX: 0, rotateY: 0 });
   const [artHovering, setArtHovering] = useState(false);
+  const [artDragging, setArtDragging] = useState(false);
+  const {
+    tilt: deviceTilt,
+    active: deviceTiltActive,
+    needsPermission: deviceTiltNeedsPermission,
+    requestAccess: requestDeviceTiltAccess,
+    resetBaseline: resetDeviceTiltBaseline,
+  } = useDeviceTilt(isMobile, TILT_MAX);
   const [enchantments, setEnchantments] = useState<Enchantment[] | null>(null);
   const [enchantStatus, setEnchantStatus] = useState<'idle' | 'loading' | 'done'>('idle');
   const [quests, setQuests] = useState<Quest[] | null>(null);
   const [questStatus, setQuestStatus] = useState<'idle' | 'loading' | 'done'>('idle');
+  const [openPill, setOpenPill] = useState<string | null>(null);
 
   useEffect(() => {
     if (entry.kind !== 'item') return;
@@ -125,18 +150,49 @@ export const CardDetail = ({ entry, onClose }: CardDetailProps) => {
     };
   }, [entry.id, entry.kind]);
 
+  const clearReleaseTimer = () => {
+    if (releaseTimer.current) {
+      clearTimeout(releaseTimer.current);
+      releaseTimer.current = null;
+    }
+  };
+
+  const beginArtInteraction = () => {
+    clearReleaseTimer();
+    setArtHovering(true);
+    setArtDragging(true);
+  };
+
+  const endArtInteraction = () => {
+    if (deviceTiltActive) return;
+
+    clearReleaseTimer();
+    setArtDragging(false);
+    setArtTilt({ rotateX: 0, rotateY: 0 });
+    releaseTimer.current = setTimeout(() => {
+      setArtHovering(false);
+      releaseTimer.current = null;
+    }, TILT_RELEASE_MS);
+  };
+
   useEffect(() => {
     setArtTilt({ rotateX: 0, rotateY: 0 });
     setArtHovering(false);
-  }, [entry.id]);
+    setArtDragging(false);
+    setOpenPill(null);
+    clearReleaseTimer();
+    resetDeviceTiltBaseline();
+  }, [entry.id, resetDeviceTiltBaseline]);
 
-  const handleArtMouseMove = (event: MouseEvent<HTMLDivElement>) => {
+  useEffect(() => () => clearReleaseTimer(), []);
+
+  const updateArtTiltFromPoint = (clientX: number, clientY: number) => {
     const art = artRef.current;
     if (!art) return;
 
     const rect = art.getBoundingClientRect();
-    const x = (event.clientX - rect.left) / rect.width - 0.5;
-    const y = (event.clientY - rect.top) / rect.height - 0.5;
+    const x = (clientX - rect.left) / rect.width - 0.5;
+    const y = (clientY - rect.top) / rect.height - 0.5;
 
     setArtTilt({
       rotateX: -y * TILT_MAX,
@@ -144,9 +200,37 @@ export const CardDetail = ({ entry, onClose }: CardDetailProps) => {
     });
   };
 
+  const handleArtMouseMove = (event: MouseEvent<HTMLDivElement>) => {
+    if (deviceTiltActive) return;
+    updateArtTiltFromPoint(event.clientX, event.clientY);
+  };
+
   const handleArtMouseLeave = () => {
-    setArtHovering(false);
-    setArtTilt({ rotateX: 0, rotateY: 0 });
+    endArtInteraction();
+  };
+
+  const handleArtTouchStart = (event: TouchEvent<HTMLDivElement>) => {
+    if (deviceTiltNeedsPermission) {
+      void requestDeviceTiltAccess();
+      return;
+    }
+
+    if (deviceTiltActive) return;
+
+    beginArtInteraction();
+    const touch = event.touches[0];
+    if (touch) updateArtTiltFromPoint(touch.clientX, touch.clientY);
+  };
+
+  const handleArtTouchMove = (event: TouchEvent<HTMLDivElement>) => {
+    if (deviceTiltActive) return;
+
+    const touch = event.touches[0];
+    if (touch) updateArtTiltFromPoint(touch.clientX, touch.clientY);
+  };
+
+  const handleArtTouchEnd = () => {
+    endArtInteraction();
   };
 
   const filterByType = (type: string) => {
@@ -179,27 +263,64 @@ export const CardDetail = ({ entry, onClose }: CardDetailProps) => {
     onClose?.();
   };
 
-  const tierRows = TIER_ORDER.map((tier) => ({ tier, tooltips: entry.tiers[tier] ?? [] })).filter(
-    (row) => row.tooltips.length > 0,
-  );
+  const pillKey = (kind: PillKind, value: string) => `${kind}:${value}`;
+
+  const renderPill = (
+    kind: PillKind,
+    value: string,
+    label: string,
+    className: string,
+    onFilter: () => void,
+    extraProps?: Record<string, string>,
+  ) => {
+    const key = pillKey(kind, value);
+    const { description, filterLabel } = getPillInfo(kind, value, label);
+
+    return (
+      <DetailPill
+        key={key}
+        className={className}
+        description={description}
+        filterLabel={filterLabel}
+        isOpen={openPill === key}
+        onOpen={() => setOpenPill(key)}
+        onClose={() => setOpenPill((current) => (current === key ? null : current))}
+        onFilter={onFilter}
+        {...extraProps}
+      >
+        {label}
+      </DetailPill>
+    );
+  };
+
+  const activeTiers = getActiveTiers(entry);
+  const sellPrices = activeTiers
+    .map((tier) => ({ tier, price: getSellPrice(entry, tier) }))
+    .filter((row): row is { tier: Tier; price: number } => row.price !== null);
 
   const types = getEntryTypes(entry);
   const mechanicTags = getEntryMechanicTags(entry);
   const stats = getBaseStats(entry);
+  const heroPills = getEntryHeroPills(entry.heroes);
 
   const isSkill = entry.kind === 'skill';
+  const effectiveTilt = deviceTiltActive ? deviceTilt : artTilt;
+  const effectiveHovering = artHovering || deviceTiltActive;
+  const effectiveDragging = artDragging || deviceTiltActive;
+
   const artClass = [
     'CardDetail-art',
     isSkill ? 'is-skill' : artSizeClass(entry.size),
-    artHovering && 'is-hovering',
+    effectiveHovering && 'is-hovering',
+    effectiveDragging && 'is-dragging',
   ]
     .filter(Boolean)
     .join(' ');
 
   const artStyle = {
-    '--tilt-x': `${artTilt.rotateX}deg`,
-    '--tilt-y': `${artTilt.rotateY}deg`,
-    ...getArtGlintVars(artTilt, artHovering),
+    '--tilt-x': `${effectiveTilt.rotateX}deg`,
+    '--tilt-y': `${effectiveTilt.rotateY}deg`,
+    ...getArtGlintVars(effectiveTilt, effectiveHovering),
   } as CSSProperties;
 
   return (
@@ -210,9 +331,15 @@ export const CardDetail = ({ entry, onClose }: CardDetailProps) => {
           className={artClass}
           data-tier={entry.startingTier ?? undefined}
           style={artStyle}
-          onMouseEnter={() => setArtHovering(true)}
+          onMouseEnter={() => {
+            if (!deviceTiltActive) beginArtInteraction();
+          }}
           onMouseMove={handleArtMouseMove}
           onMouseLeave={handleArtMouseLeave}
+          onTouchStart={handleArtTouchStart}
+          onTouchMove={handleArtTouchMove}
+          onTouchEnd={handleArtTouchEnd}
+          onTouchCancel={handleArtTouchEnd}
         >
           <CardImage
             src={entry.imageUrl}
@@ -241,31 +368,49 @@ export const CardDetail = ({ entry, onClose }: CardDetailProps) => {
         <div className="CardDetail-heading">
           <h2 className="CardDetail-name">{entry.name}</h2>
           <div className="CardDetail-meta">
-            <button
-              type="button"
-              className="CardDetail-badge is-clickable"
-              onClick={() => filterByKind(entry.kind)}
-            >
-              {entry.kind === 'item' ? 'Item' : 'Skill'}
-            </button>
-            {!isSkill && entry.size && (
-              <button
-                type="button"
-                className="CardDetail-badge is-clickable"
-                onClick={() => filterBySize(entry.size!)}
-              >
-                {entry.size}
-              </button>
+            {heroPills.map(({ label, hero }) =>
+              renderPill(
+                'hero',
+                hero,
+                label,
+                'CardDetail-badge is-hero is-clickable',
+                () => filterByHero(hero),
+              ),
             )}
-            {entry.startingTier && (
-              <button
-                type="button"
-                className="CardDetail-badge is-clickable"
-                data-tier={entry.startingTier}
-                onClick={() => filterByTier(entry.startingTier!)}
-              >
-                {entry.startingTier === 'Bronze' ? 'Bronze+' : entry.startingTier}
-              </button>
+            {renderPill(
+              'kind',
+              entry.kind,
+              entry.kind === 'item' ? 'Item' : 'Skill',
+              'CardDetail-badge is-clickable',
+              () => filterByKind(entry.kind),
+            )}
+            {!isSkill &&
+              entry.size &&
+              renderPill(
+                'size',
+                entry.size,
+                entry.size,
+                'CardDetail-badge is-clickable',
+                () => filterBySize(entry.size!),
+              )}
+            {entry.startingTier &&
+              renderPill(
+                'tier',
+                entry.startingTier,
+                formatStartingTierLabel(entry.startingTier),
+                'CardDetail-badge is-clickable',
+                () => filterByTier(entry.startingTier!),
+                { 'data-tier': entry.startingTier },
+              )}
+            {types.map((type) =>
+              renderPill(
+                'type',
+                type,
+                type,
+                'CardDetail-badge is-type is-clickable',
+                () => filterByType(type),
+                { 'data-tag': type },
+              ),
             )}
           </div>
           {!isSkill && stats.length > 0 && (
@@ -280,89 +425,65 @@ export const CardDetail = ({ entry, onClose }: CardDetailProps) => {
           )}
         </div>
 
-        {tierRows.length > 0 && (
-          <section className="CardDetail-section">
-            <h3 className="CardDetail-sectionTitle">Effects by tier</h3>
-            {tierRows.map((row) => {
-              const sellPrice = entry.kind === 'item' ? getSellPrice(entry, row.tier) : null;
-
-              return (
-                <div key={row.tier} className="CardDetail-tier">
-                  <div className="CardDetail-tierHeader">
-                    <span className="CardDetail-tierLabel" data-tier={row.tier}>
-                      {row.tier}
+        {!isSkill && sellPrices.length > 0 && (
+          <div className="CardDetail-facts">
+            {(
+              [
+                {
+                  label: 'Cost',
+                  prices: sellPrices.map(({ tier, price }) => ({ tier, price: price * 2 })),
+                },
+                { label: 'Value', prices: sellPrices },
+              ] as const
+            ).map(({ label, prices }) => (
+              <Fragment key={label}>
+                <span className="CardDetail-factsLabel">{label}</span>
+                <div className="CardDetail-factsValue">
+                  <span className="CardDetail-goldAmount">
+                    <GoldCoinIcon size={10} className="CardDetail-goldIcon" />
+                    <span className="CardDetail-goldValues">
+                      {prices.map(({ tier, price }, i) => (
+                        <Fragment key={tier}>
+                          {i > 0 && <span className="CardDetail-tierSep">/</span>}
+                          <span className="CardDetail-tierVal" data-tier={tier}>
+                            {price}
+                          </span>
+                        </Fragment>
+                      ))}
                     </span>
-                    {sellPrice !== null && (
-                      <SellPrice value={sellPrice} size={12} className="CardDetail-tierSell" />
-                    )}
-                  </div>
-                  <ul className="CardDetail-tooltips">
-                    {row.tooltips.map((tip, i) => (
-                      <li key={i}>
-                        <TooltipLine text={tip} plain />
-                      </li>
-                    ))}
-                  </ul>
+                  </span>
                 </div>
-              );
-            })}
-          </section>
+              </Fragment>
+            ))}
+          </div>
         )}
 
-        {entry.heroes.length > 0 && (
-          <section className="CardDetail-section CardDetail-section--inline">
-            <h3 className="CardDetail-sectionTitle">Hero</h3>
-            <div className="CardDetail-heroes">
-              {entry.heroes.map((hero) => (
-                <button
-                  key={hero}
-                  type="button"
-                  className="CardDetail-badge is-hero is-clickable"
-                  onClick={() => filterByHero(hero)}
-                >
-                  {formatHeroLabel(hero)}
-                </button>
+        {entry.unifiedTooltips.length > 0 && (
+          <section className="CardDetail-section CardDetail-description">
+            <ul className="CardDetail-tooltips">
+              {entry.unifiedTooltips.map((tip, i) => (
+                <li key={i}>
+                  <TooltipLine text={tip} activeTiers={activeTiers} />
+                </li>
               ))}
-            </div>
-          </section>
-        )}
-
-        {types.length > 0 && (
-          <section className="CardDetail-section CardDetail-section--inline">
-            <h3 className="CardDetail-sectionTitle">Types</h3>
-            <div className="CardDetail-tags">
-              {types.map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  className="CardDetail-badge is-type is-clickable"
-                  data-tag={type}
-                  onClick={() => filterByType(type)}
-                >
-                  {type}
-                </button>
-              ))}
-            </div>
+            </ul>
           </section>
         )}
 
         {mechanicTags.length > 0 && (
-          <section className="CardDetail-section CardDetail-section--inline">
-            <h3 className="CardDetail-sectionTitle">Tags</h3>
-            <div className="CardDetail-tags">
-              {mechanicTags.map((tag) => (
-                <button
-                  key={tag}
-                  type="button"
-                  className="CardDetail-badge is-clickable"
-                  data-tag={tag}
-                  onClick={() => filterByTag(tag)}
-                >
-                  {formatTagLabel(tag)}
-                </button>
-              ))}
-            </div>
-          </section>
+          <div className="CardDetail-tagRow">
+            <span className="CardDetail-factsLabel">Tags</span>
+            {mechanicTags.map((tag) =>
+              renderPill(
+                'tag',
+                tag,
+                formatTagLabel(tag),
+                'CardDetail-badge is-clickable',
+                () => filterByTag(tag),
+                { 'data-tag': tag },
+              ),
+            )}
+          </div>
         )}
 
         {entry.kind === 'item' && (questStatus === 'loading' || (quests?.length ?? 0) > 0) && (
@@ -383,7 +504,7 @@ export const CardDetail = ({ entry, onClose }: CardDetailProps) => {
                           <ul className="CardDetail-tooltips">
                             {questEntry.tooltips.map((tip, i) => (
                               <li key={i}>
-                                <TooltipLine text={tip} plain />
+                                <TooltipLine text={tip} activeTiers={activeTiers} />
                               </li>
                             ))}
                           </ul>
@@ -394,7 +515,7 @@ export const CardDetail = ({ entry, onClose }: CardDetailProps) => {
                             <ul className="CardDetail-tooltips">
                               {questEntry.rewardTooltips.map((tip, i) => (
                                 <li key={i}>
-                                  <TooltipLine text={tip} plain />
+                                  <TooltipLine text={tip} activeTiers={activeTiers} />
                                 </li>
                               ))}
                             </ul>
@@ -426,7 +547,7 @@ export const CardDetail = ({ entry, onClose }: CardDetailProps) => {
                 <ul className="CardDetail-tooltips">
                   {ench.tooltips.map((tip, i) => (
                     <li key={i}>
-                      <TooltipLine text={tip} plain />
+                      <TooltipLine text={tip} activeTiers={activeTiers} />
                     </li>
                   ))}
                 </ul>
