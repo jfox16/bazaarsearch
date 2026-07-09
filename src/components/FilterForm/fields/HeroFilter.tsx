@@ -26,7 +26,7 @@ export const HeroFilter = () => {
           Show Neutral
         </label>
       }
-      options={heroes.map((h) => ({ value: h, label: formatHeroLabel(h) }))}
+      options={heroes.map((hero: string) => ({ value: hero, label: formatHeroLabel(hero) }))}
       selected={selected}
       onToggle={(value) => toggleFilter('heroes', value)}
     />

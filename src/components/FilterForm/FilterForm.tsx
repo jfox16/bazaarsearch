@@ -1,7 +1,7 @@
 import { X } from 'lucide-react';
 
 import { DataStatus } from 'components/DataStatus/DataStatus';
-import { isDefaultKinds } from 'store/slices/filterSlice';
+import { isDefaultKinds } from 'functions/filterDefaults';
 import { useBazaarStore, useFilteredEntries } from 'store/useBazaarStore';
 
 import { TextFilter } from './fields/TextFilter';
