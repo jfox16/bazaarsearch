@@ -210,11 +210,6 @@ export const CardDetail = ({ entry, onClose }: CardDetailProps) => {
   };
 
   const handleArtTouchStart = (event: TouchEvent<HTMLDivElement>) => {
-    if (deviceTiltNeedsPermission) {
-      void requestDeviceTiltAccess();
-      return;
-    }
-
     if (deviceTiltActive) return;
 
     beginArtInteraction();
@@ -230,7 +225,18 @@ export const CardDetail = ({ entry, onClose }: CardDetailProps) => {
   };
 
   const handleArtTouchEnd = () => {
+    // iOS requires a user gesture for gyro access; touchend is more reliable
+    // than touchstart per Apple/WebKit guidance.
+    if (deviceTiltNeedsPermission) {
+      void requestDeviceTiltAccess();
+    }
     endArtInteraction();
+  };
+
+  const handleArtClick = () => {
+    if (deviceTiltNeedsPermission) {
+      void requestDeviceTiltAccess();
+    }
   };
 
   const filterByType = (type: string) => {
@@ -336,6 +342,7 @@ export const CardDetail = ({ entry, onClose }: CardDetailProps) => {
           }}
           onMouseMove={handleArtMouseMove}
           onMouseLeave={handleArtMouseLeave}
+          onClick={handleArtClick}
           onTouchStart={handleArtTouchStart}
           onTouchMove={handleArtTouchMove}
           onTouchEnd={handleArtTouchEnd}

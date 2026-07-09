@@ -11,6 +11,18 @@
     flex-shrink: 0;
     perspective: 650px;
     pointer-events: auto;
+    // Drop-shadow on the stage, not the tilted art: WebKit drops mix-blend-mode
+    // when filter and transform share the same stacking context (iOS Safari).
+    filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.55));
+    transition: filter 0.28s ease-out;
+
+    &:has(.CardDetail-art.is-hovering:not(.is-skill)) {
+      filter: drop-shadow(0 22px 36px rgba(0, 0, 0, 0.68));
+    }
+
+    &:has(.CardDetail-art.is-skill) {
+      filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.5));
+    }
   }
 
   &-art {
@@ -27,33 +39,24 @@
     border-radius: var(--radius);
     padding: 3px;
     background: var(--art-tier-color, var(--color-border));
-    filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.55));
+    isolation: isolate;
     transform-style: preserve-3d;
     touch-action: none;
     transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateY(0) scale(1);
-    transition:
-      transform 0.35s ease-out,
-      filter 0.28s ease-out;
+    transition: transform 0.35s ease-out;
     will-change: transform;
 
     &.is-hovering {
-      filter: drop-shadow(0 22px 36px rgba(0, 0, 0, 0.68));
       transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateY(-10px) scale(1.05);
-      transition:
-        transform 0.3s ease-out,
-        filter 0.28s ease-out;
+      transition: transform 0.3s ease-out;
     }
 
     &.is-hovering.is-dragging {
-      transition:
-        transform 0.08s ease-out,
-        filter 0.28s ease-out;
+      transition: transform 0.08s ease-out;
     }
 
     &.is-hovering:not(.is-dragging) {
-      transition:
-        transform 0.38s ease-out,
-        filter 0.28s ease-out;
+      transition: transform 0.38s ease-out;
     }
 
     .CardImage {
@@ -108,6 +111,14 @@
       transition: opacity 0.2s ease-out;
     }
 
+    // iOS WebKit: overlay often fails inside transformed parents; soft-light blends
+    // more reliably on touch devices (see mix-blend-mode stacking-context bugs).
+    @media (hover: none) and (pointer: coarse) {
+      .CardDetail-artGlint {
+        mix-blend-mode: soft-light;
+      }
+    }
+
     &.is-hovering .CardDetail-artGlint {
       transition: none;
     }
@@ -132,7 +143,6 @@
       border-radius: 50%;
       padding: 3px;
       background: var(--art-tier-color, var(--color-border));
-      filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.5));
 
       .CardDetail-artGlint {
         inset: 3px;
@@ -161,13 +171,13 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
+    &-artStage {
+      filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.55));
+    }
+
     &-art {
       transform: none !important;
       transition: none;
-
-      &.is-hovering {
-        filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.55));
-      }
 
       .CardDetail-artGlint {
         display: none;
